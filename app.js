@@ -1,4 +1,4 @@
-// College Complaint Management System with Notification System - Main Application Logic
+// College Complaint Management System - Main Application Logic with Analytics
 
 class ComplaintManagementApp {
     constructor() {
@@ -9,17 +9,8 @@ class ComplaintManagementApp {
         this.priorities = [];
         this.statuses = [];
         this.users = [];
-        this.notifications = [];
-        this.notificationTypes = [];
-        this.broadcastTemplates = [];
-        this.notificationPreferences = {
-            email: true,
-            sms: true,
-            push: true,
-            sound: true
-        };
-        this.currentComplaint = null;
-        this.notificationSound = null;
+        this.analyticsData = {};
+        this.charts = {};
         
         // Wait for DOM to be fully loaded before initializing
         if (document.readyState === 'loading') {
@@ -33,8 +24,6 @@ class ComplaintManagementApp {
         console.log('Initializing app...');
         this.loadMockData();
         this.loadUserSession();
-        this.initNotificationSound();
-        this.requestNotificationPermission();
         
         // Wait a bit for DOM to be ready
         setTimeout(() => {
@@ -47,38 +36,36 @@ class ComplaintManagementApp {
             } else {
                 this.showMainApp();
                 this.navigate('dashboard');
-                this.loadNotifications();
-                this.updateNotificationBadge();
             }
         }, 500);
     }
     
     loadMockData() {
         console.log('Loading mock data...');
-        // Mock users with notification preferences
+        // Mock users
         this.users = [
-            {"email": "student@college.edu", "password": "demo123", "role": "Student", "name": "John Doe", "id": "STU001", "phone": "+91-9876543210", "notificationPrefs": {"email": true, "sms": true, "push": true}},
-            {"email": "staff@college.edu", "password": "demo123", "role": "Staff", "name": "Jane Smith", "id": "STF001", "phone": "+91-9876543211", "notificationPrefs": {"email": true, "sms": false, "push": true}},
-            {"email": "admin@college.edu", "password": "demo123", "role": "Admin", "name": "Admin User", "id": "ADM001", "phone": "+91-9876543212", "notificationPrefs": {"email": true, "sms": true, "push": true}}
+            {"email": "student@college.edu", "password": "demo123", "role": "Student", "name": "John Doe", "id": "STU001", "phone": "+91-9876543210"},
+            {"email": "staff@college.edu", "password": "demo123", "role": "Staff", "name": "Jane Smith", "id": "STF001", "phone": "+91-9876543211"},
+            {"email": "admin@college.edu", "password": "demo123", "role": "Admin", "name": "Admin User", "id": "ADM001", "phone": "+91-9876543212"}
         ];
         
-        // Categories
+        // Categories with department info
         this.categories = [
-            {"id": 1, "name": "WiFi", "icon": "📶", "color": "bg-blue-500"},
-            {"id": 2, "name": "Hostel", "icon": "🏠", "color": "bg-purple-500"},
-            {"id": 3, "name": "Food", "icon": "🍽️", "color": "bg-orange-500"},
-            {"id": 4, "name": "Classroom", "icon": "🏫", "color": "bg-green-500"},
-            {"id": 5, "name": "Maintenance", "icon": "🔧", "color": "bg-yellow-500"},
-            {"id": 6, "name": "Academics", "icon": "📚", "color": "bg-indigo-500"},
-            {"id": 7, "name": "Harassment", "icon": "⚠️", "color": "bg-red-500"},
-            {"id": 8, "name": "Other", "icon": "❓", "color": "bg-gray-500"}
+            {"id": 1, "name": "WiFi", "icon": "📶", "color": "bg-blue-500", "department": "IT Department"},
+            {"id": 2, "name": "Hostel", "icon": "🏠", "color": "bg-purple-500", "department": "Hostel Administration"},
+            {"id": 3, "name": "Food", "icon": "🍽️", "color": "bg-orange-500", "department": "Mess Management"},
+            {"id": 4, "name": "Classroom", "icon": "🏫", "color": "bg-green-500", "department": "Academic Affairs"},
+            {"id": 5, "name": "Maintenance", "icon": "🔧", "color": "bg-yellow-500", "department": "Maintenance Department"},
+            {"id": 6, "name": "Academics", "icon": "📚", "color": "bg-indigo-500", "department": "Academic Affairs"},
+            {"id": 7, "name": "Harassment", "icon": "⚠️", "color": "bg-red-500", "department": "Student Affairs"},
+            {"id": 8, "name": "Other", "icon": "❓", "color": "bg-gray-500", "department": "General Administration"}
         ];
         
         // Priorities
         this.priorities = [
-            {"id": 1, "name": "Urgent", "color": "bg-red-500", "textColor": "text-red-500"},
-            {"id": 2, "name": "Medium", "color": "bg-orange-500", "textColor": "text-orange-500"},
-            {"id": 3, "name": "Low", "color": "bg-green-500", "textColor": "text-green-500"}
+            {"id": 1, "name": "Urgent", "color": "bg-red-500", "textColor": "text-red-500", "targetTime": 4},
+            {"id": 2, "name": "Medium", "color": "bg-orange-500", "textColor": "text-orange-500", "targetTime": 24},
+            {"id": 3, "name": "Low", "color": "bg-green-500", "textColor": "text-green-500", "targetTime": 72}
         ];
         
         // Statuses
@@ -87,33 +74,19 @@ class ComplaintManagementApp {
             {"id": 2, "name": "In Progress", "color": "bg-yellow-500", "textColor": "text-yellow-500"},
             {"id": 3, "name": "Resolved", "color": "bg-green-500", "textColor": "text-green-500"}
         ];
-        
-        // Notification Types
-        this.notificationTypes = [
-            {"id": 1, "name": "Status Update", "icon": "🔄", "color": "text-blue-400"},
-            {"id": 2, "name": "Broadcast", "icon": "📢", "color": "text-purple-400"},
-            {"id": 3, "name": "System Alert", "icon": "⚠️", "color": "text-red-400"},
-            {"id": 4, "name": "Welcome", "icon": "👋", "color": "text-green-400"}
+
+        // Departments
+        this.departments = [
+            {"id": 1, "name": "IT Department", "head": "Dr. Kumar", "efficiency": 85},
+            {"id": 2, "name": "Hostel Administration", "head": "Ms. Sharma", "efficiency": 78},
+            {"id": 3, "name": "Mess Management", "head": "Mr. Patel", "efficiency": 72},
+            {"id": 4, "name": "Academic Affairs", "head": "Prof. Singh", "efficiency": 90},
+            {"id": 5, "name": "Maintenance Department", "head": "Mr. Gupta", "efficiency": 65},
+            {"id": 6, "name": "Student Affairs", "head": "Dr. Verma", "efficiency": 88}
         ];
-        
-        // Broadcast Templates
-        this.broadcastTemplates = [
-            {
-                "id": 1,
-                "title": "System Maintenance",
-                "template": "The complaint portal will be under maintenance on {date} from {startTime} to {endTime}. Please plan accordingly."
-            },
-            {
-                "id": 2,
-                "title": "Holiday Notice",
-                "template": "The college will be closed on {date} due to {reason}. All complaint processing will resume on {resumeDate}."
-            },
-            {
-                "id": 3,
-                "title": "New Feature Announcement",
-                "template": "We're excited to announce a new feature: {featureName}. {description}"
-            }
-        ];
+
+        // Load analytics data
+        this.loadAnalyticsData();
         
         // Load complaints from localStorage or use mock data
         const savedComplaints = localStorage.getItem('complaints');
@@ -128,20 +101,48 @@ class ComplaintManagementApp {
             this.complaints = this.getDefaultComplaints();
             this.saveComplaints();
         }
-        
-        // Load notifications from localStorage or use mock data
-        const savedNotifications = localStorage.getItem('notifications');
-        if (savedNotifications) {
-            try {
-                this.notifications = JSON.parse(savedNotifications);
-            } catch (e) {
-                console.error('Error loading saved notifications:', e);
-                this.notifications = this.getDefaultNotifications();
-            }
-        } else {
-            this.notifications = this.getDefaultNotifications();
-            this.saveNotifications();
-        }
+    }
+
+    loadAnalyticsData() {
+        this.analyticsData = {
+            monthlyTrends: [
+                {"month": "Apr", "submitted": 15, "resolved": 12, "inProgress": 3},
+                {"month": "May", "submitted": 22, "resolved": 20, "inProgress": 2},
+                {"month": "Jun", "submitted": 18, "resolved": 16, "inProgress": 2},
+                {"month": "Jul", "submitted": 25, "resolved": 21, "inProgress": 4},
+                {"month": "Aug", "submitted": 32, "resolved": 28, "inProgress": 4},
+                {"month": "Sep", "submitted": 28, "resolved": 22, "inProgress": 6}
+            ],
+            categoryStats: [
+                {"category": "WiFi", "count": 35, "avgResolutionTime": 48.2},
+                {"category": "Hostel", "count": 28, "avgResolutionTime": 36.5},
+                {"category": "Food", "count": 22, "avgResolutionTime": 42.8},
+                {"category": "Classroom", "count": 18, "avgResolutionTime": 52.3},
+                {"category": "Maintenance", "count": 15, "avgResolutionTime": 58.7},
+                {"category": "Academics", "count": 12, "avgResolutionTime": 24.6},
+                {"category": "Harassment", "count": 3, "avgResolutionTime": 12.4},
+                {"category": "Other", "count": 7, "avgResolutionTime": 38.9}
+            ],
+            priorityDistribution: [
+                {"priority": "Urgent", "count": 25, "percentage": 17.9},
+                {"priority": "Medium", "count": 78, "percentage": 55.7},
+                {"priority": "Low", "count": 37, "percentage": 26.4}
+            ],
+            resolutionTimes: {
+                "average": 42.3,
+                "urgent": 18.5,
+                "medium": 45.2,
+                "low": 68.7
+            },
+            departmentPerformance: [
+                {"department": "IT Department", "efficiency": 85, "avgTime": 38.2, "complaints": 42},
+                {"department": "Hostel Administration", "efficiency": 78, "avgTime": 36.5, "complaints": 28},
+                {"department": "Mess Management", "efficiency": 72, "avgTime": 42.8, "complaints": 22},
+                {"department": "Academic Affairs", "efficiency": 90, "avgTime": 38.4, "complaints": 30},
+                {"department": "Maintenance Department", "efficiency": 65, "avgTime": 58.7, "complaints": 15},
+                {"department": "Student Affairs", "efficiency": 88, "avgTime": 12.4, "complaints": 3}
+            ]
+        };
     }
     
     getDefaultComplaints() {
@@ -152,10 +153,13 @@ class ComplaintManagementApp {
                 "description": "The WiFi connection is very slow and keeps disconnecting in Block A hostel rooms.",
                 "category": 1,
                 "priority": 1,
-                "status": 2,
+                "status": 3,
                 "submittedBy": "STU001",
-                "submittedAt": "2025-09-19T08:30:00Z",
-                "updatedAt": "2025-09-19T10:15:00Z"
+                "submittedAt": "2025-09-15T08:30:00Z",
+                "updatedAt": "2025-09-17T14:00:00Z",
+                "assignedDept": 1,
+                "resolutionTime": 53.5,
+                "staffRating": 4
             },
             {
                 "id": "COMP002",
@@ -163,10 +167,13 @@ class ComplaintManagementApp {
                 "description": "The food quality in the mess has deteriorated significantly over the past week.",
                 "category": 3,
                 "priority": 2,
-                "status": 1,
+                "status": 2,
                 "submittedBy": "STU001",
-                "submittedAt": "2025-09-18T14:20:00Z",
-                "updatedAt": "2025-09-18T14:20:00Z"
+                "submittedAt": "2025-09-16T14:20:00Z",
+                "updatedAt": "2025-09-18T10:15:00Z",
+                "assignedDept": 3,
+                "resolutionTime": null,
+                "staffRating": null
             },
             {
                 "id": "COMP003",
@@ -176,64 +183,39 @@ class ComplaintManagementApp {
                 "priority": 2,
                 "status": 3,
                 "submittedBy": "STU001",
-                "submittedAt": "2025-09-17T09:15:00Z",
-                "updatedAt": "2025-09-19T11:00:00Z"
+                "submittedAt": "2025-09-12T09:15:00Z",
+                "updatedAt": "2025-09-14T16:30:00Z",
+                "assignedDept": 5,
+                "resolutionTime": 55.25,
+                "staffRating": 5
             },
             {
                 "id": "COMP004",
                 "title": "Water leakage in hostel bathroom",
                 "description": "There is a continuous water leakage from the ceiling in Block B bathroom.",
-                "category": 5,
+                "category": 2,
                 "priority": 1,
-                "status": 2,
+                "status": 3,
                 "submittedBy": "STU001",
-                "submittedAt": "2025-09-19T07:45:00Z",
-                "updatedAt": "2025-09-19T09:30:00Z"
+                "submittedAt": "2025-09-10T07:45:00Z",
+                "updatedAt": "2025-09-11T12:00:00Z",
+                "assignedDept": 2,
+                "resolutionTime": 28.25,
+                "staffRating": 4
             },
             {
                 "id": "COMP005",
-                "title": "Missing assignment submission portal",
+                "title": "Assignment portal down",
                 "description": "Cannot find the assignment submission link for Advanced Programming course.",
                 "category": 6,
                 "priority": 2,
                 "status": 1,
                 "submittedBy": "STU001",
                 "submittedAt": "2025-09-19T11:00:00Z",
-                "updatedAt": "2025-09-19T11:00:00Z"
-            }
-        ];
-    }
-    
-    getDefaultNotifications() {
-        return [
-            {
-                "id": "NOT001",
-                "type": 1,
-                "title": "Complaint Status Updated",
-                "message": "Your complaint #COMP001 (WiFi not working in Block A) status has been updated to In Progress",
-                "timestamp": "2025-09-19T10:15:00Z",
-                "isRead": false,
-                "userId": "STU001",
-                "relatedComplaint": "COMP001"
-            },
-            {
-                "id": "NOT002",
-                "type": 2,
-                "title": "System Maintenance Notice",
-                "message": "The complaint portal will be under maintenance on Saturday 21st Sept from 2 AM to 4 AM. Please plan accordingly.",
-                "timestamp": "2025-09-19T09:00:00Z",
-                "isRead": true,
-                "userId": "all",
-                "priority": "Medium"
-            },
-            {
-                "id": "NOT003",
-                "type": 4,
-                "title": "Welcome to the Portal",
-                "message": "Welcome to the College Complaint Management System! You can now submit and track your complaints easily.",
-                "timestamp": "2025-09-19T08:00:00Z",
-                "isRead": false,
-                "userId": "STU001"
+                "updatedAt": "2025-09-19T11:00:00Z",
+                "assignedDept": 1,
+                "resolutionTime": null,
+                "staffRating": null
             }
         ];
     }
@@ -244,12 +226,6 @@ class ComplaintManagementApp {
             if (savedUser) {
                 this.currentUser = JSON.parse(savedUser);
                 console.log('Loaded user session:', this.currentUser);
-                
-                // Load user notification preferences
-                const savedPrefs = localStorage.getItem(`notificationPrefs_${this.currentUser.id}`);
-                if (savedPrefs) {
-                    this.notificationPreferences = JSON.parse(savedPrefs);
-                }
             }
         } catch (e) {
             console.error('Error loading user session:', e);
@@ -273,65 +249,16 @@ class ComplaintManagementApp {
         }
     }
     
-    saveNotifications() {
-        try {
-            localStorage.setItem('notifications', JSON.stringify(this.notifications));
-        } catch (e) {
-            console.error('Error saving notifications:', e);
-        }
-    }
-    
-    saveNotificationPreferences() {
-        try {
-            localStorage.setItem(`notificationPrefs_${this.currentUser.id}`, JSON.stringify(this.notificationPreferences));
-        } catch (e) {
-            console.error('Error saving notification preferences:', e);
-        }
-    }
-    
-    initNotificationSound() {
-        // Create a simple notification sound using Web Audio API
-        this.notificationSound = {
-            play: () => {
-                if (!this.notificationPreferences.sound) return;
-                
-                try {
-                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    
-                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
-                    
-                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-                    
-                    oscillator.start(audioContext.currentTime);
-                    oscillator.stop(audioContext.currentTime + 0.3);
-                } catch (e) {
-                    console.warn('Could not play notification sound:', e);
-                }
-            }
-        };
-    }
-    
-    requestNotificationPermission() {
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
-    }
-    
     bindEvents() {
         console.log('Binding events...');
         
         // Login form
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
+            console.log('Login form found, binding submit event');
             loginForm.addEventListener('submit', (e) => {
                 e.preventDefault();
+                console.log('Login form submitted');
                 this.handleLogin(e);
             });
         }
@@ -341,6 +268,7 @@ class ComplaintManagementApp {
             if (e.target.hasAttribute('data-route')) {
                 e.preventDefault();
                 const route = e.target.getAttribute('data-route');
+                console.log('Navigating to:', route);
                 this.navigate(route);
             }
         });
@@ -348,40 +276,11 @@ class ComplaintManagementApp {
         // Logout
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
-            console.log('Logout button found, binding click event');
             logoutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                console.log('Logout button clicked');
                 this.handleLogout();
             });
-        } else {
-            console.warn('Logout button not found');
         }
-        
-        // Notification Bell
-        const notificationBell = document.getElementById('notification-bell');
-        if (notificationBell) {
-            notificationBell.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.toggleNotificationDropdown();
-            });
-        }
-        
-        // Mark all notifications as read
-        const markAllReadBtn = document.getElementById('mark-all-read');
-        if (markAllReadBtn) {
-            markAllReadBtn.addEventListener('click', () => {
-                this.markAllNotificationsAsRead();
-            });
-        }
-        
-        // Close notification dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            const dropdown = document.getElementById('notification-dropdown');
-            if (dropdown && !dropdown.contains(e.target) && !e.target.closest('#notification-bell')) {
-                dropdown.classList.remove('show');
-            }
-        });
         
         // Complaint form
         const complaintForm = document.getElementById('complaint-form');
@@ -389,54 +288,30 @@ class ComplaintManagementApp {
             complaintForm.addEventListener('submit', (e) => this.handleComplaintSubmit(e));
         }
         
-        // Broadcast form
-        const broadcastForm = document.getElementById('broadcast-form');
-        if (broadcastForm) {
-            broadcastForm.addEventListener('submit', (e) => this.handleBroadcastSubmit(e));
+        // Analytics export
+        const exportBtn = document.getElementById('export-analytics');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.exportAnalyticsReport());
+        }
+
+        // Analytics period filter
+        const periodFilter = document.getElementById('analytics-period');
+        if (periodFilter) {
+            periodFilter.addEventListener('change', () => this.updateAnalyticsPeriod());
         }
         
-        // Preview broadcast
-        const previewBroadcastBtn = document.getElementById('preview-broadcast');
-        if (previewBroadcastBtn) {
-            previewBroadcastBtn.addEventListener('click', () => this.previewBroadcast());
-        }
-        
-        // Confirm broadcast
-        const confirmBroadcastBtn = document.getElementById('confirm-broadcast');
-        if (confirmBroadcastBtn) {
-            confirmBroadcastBtn.addEventListener('click', () => this.sendBroadcast());
-        }
-        
-        // Broadcast templates
-        const broadcastTemplateSelect = document.getElementById('broadcast-template');
-        if (broadcastTemplateSelect) {
-            broadcastTemplateSelect.addEventListener('change', (e) => {
-                this.populateBroadcastTemplate(e.target.value);
-            });
-        }
-        
-        // Notification settings
-        const saveSettingsBtn = document.getElementById('save-settings');
-        if (saveSettingsBtn) {
-            saveSettingsBtn.addEventListener('click', () => this.saveSettings());
-        }
-        
-        const testNotificationsBtn = document.getElementById('test-notifications');
-        if (testNotificationsBtn) {
-            testNotificationsBtn.addEventListener('click', () => this.testNotifications());
-        }
-        
-        // Notification tabs
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('tab-btn')) {
-                this.switchNotificationTab(e.target.getAttribute('data-tab'));
-            }
-        });
-        
-        // Filters - bind immediately after a delay to ensure elements exist
+        // Filters
         setTimeout(() => {
-            this.bindFilterEvents();
-        }, 100);
+            const categoryFilter = document.getElementById('category-filter');
+            const priorityFilter = document.getElementById('priority-filter');
+            const statusFilter = document.getElementById('status-filter');
+            const searchFilter = document.getElementById('search-filter');
+            
+            if (categoryFilter) categoryFilter.addEventListener('change', () => this.applyFilters());
+            if (priorityFilter) priorityFilter.addEventListener('change', () => this.applyFilters());
+            if (statusFilter) statusFilter.addEventListener('change', () => this.applyFilters());
+            if (searchFilter) searchFilter.addEventListener('input', () => this.applyFilters());
+        }, 1000);
         
         // Modal close
         document.addEventListener('click', (e) => {
@@ -467,50 +342,7 @@ class ComplaintManagementApp {
             }
         });
         
-        // Notification item clicks
-        document.addEventListener('click', (e) => {
-            const notificationItem = e.target.closest('.notification-item');
-            if (notificationItem) {
-                const notificationId = notificationItem.getAttribute('data-notification-id');
-                this.handleNotificationClick(notificationId);
-            }
-        });
-        
-        // Toast close buttons
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('toast-close')) {
-                const toast = e.target.closest('.toast');
-                if (toast) {
-                    this.removeToast(toast);
-                }
-            }
-        });
-        
         console.log('Events bound successfully');
-    }
-    
-    bindFilterEvents() {
-        const categoryFilter = document.getElementById('category-filter');
-        const priorityFilter = document.getElementById('priority-filter');
-        const statusFilter = document.getElementById('status-filter');
-        const searchFilter = document.getElementById('search-filter');
-        
-        if (categoryFilter) {
-            console.log('Binding category filter');
-            categoryFilter.addEventListener('change', () => this.applyFilters());
-        }
-        if (priorityFilter) {
-            console.log('Binding priority filter');
-            priorityFilter.addEventListener('change', () => this.applyFilters());
-        }
-        if (statusFilter) {
-            console.log('Binding status filter');
-            statusFilter.addEventListener('change', () => this.applyFilters());
-        }
-        if (searchFilter) {
-            console.log('Binding search filter');
-            searchFilter.addEventListener('input', () => this.applyFilters());
-        }
     }
     
     hideLoading() {
@@ -539,18 +371,7 @@ class ComplaintManagementApp {
         
         this.updateUserInfo();
         this.updateRoleVisibility();
-        
-        // Populate form options immediately
-        setTimeout(() => {
-            this.populateFormOptions();
-            this.populateBroadcastTemplates();
-            this.loadNotificationSettings();
-        }, 100);
-        
-        // Send welcome notification for new users
-        if (!this.hasWelcomeNotification()) {
-            this.sendWelcomeNotification();
-        }
+        this.populateFormOptions();
     }
     
     handleLogin(e) {
@@ -562,6 +383,7 @@ class ComplaintManagementApp {
         const roleEl = document.getElementById('role');
         
         if (!emailEl || !passwordEl || !roleEl) {
+            console.error('Login form elements not found');
             this.showToast('Login form error. Please refresh and try again.', 'error');
             return;
         }
@@ -569,6 +391,8 @@ class ComplaintManagementApp {
         const email = emailEl.value.trim();
         const password = passwordEl.value.trim();
         const role = roleEl.value;
+        
+        console.log('Login attempt:', { email, role, hasPassword: !!password });
         
         if (!email || !password || !role) {
             this.showToast('Please fill in all fields.', 'error');
@@ -588,33 +412,34 @@ class ComplaintManagementApp {
             this.saveUserSession();
             this.showMainApp();
             this.navigate('dashboard');
-            this.loadNotifications();
-            this.updateNotificationBadge();
             this.showToast('Login successful! Welcome ' + user.name, 'success');
         } else {
+            console.log('Login failed - invalid credentials');
             this.showToast('Invalid credentials. Please check email, password, and role.', 'error');
         }
     }
     
     handleLogout() {
-        console.log('Logging out user:', this.currentUser?.name);
+        console.log('Logging out...');
         this.currentUser = null;
-        this.notifications = [];
-        this.currentUserNotifications = [];
         localStorage.removeItem('currentUser');
         
-        // Clear any existing intervals or timeouts
+        // Destroy all charts
+        Object.values(this.charts).forEach(chart => {
+            if (chart && typeof chart.destroy === 'function') {
+                chart.destroy();
+            }
+        });
+        this.charts = {};
         
         this.showLogin();
         this.showToast('Logged out successfully!', 'success');
         
+        // Clear form
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
             loginForm.reset();
         }
-        
-        // Reset body data-role attribute
-        document.body.removeAttribute('data-role');
     }
     
     updateUserInfo() {
@@ -632,6 +457,7 @@ class ComplaintManagementApp {
             if (profileEmailEl) profileEmailEl.textContent = this.currentUser.email;
             if (profileRoleEl) profileRoleEl.textContent = this.currentUser.role;
             
+            // Update avatar initials
             if (avatarInitialsEl) {
                 const initials = this.currentUser.name.split(' ').map(n => n[0]).join('');
                 avatarInitialsEl.textContent = initials;
@@ -646,20 +472,9 @@ class ComplaintManagementApp {
     }
     
     populateFormOptions() {
-        console.log('Populating form options...');
-        
         // Categories
         const categorySelects = document.querySelectorAll('#complaint-category, #category-filter');
-        console.log('Found category selects:', categorySelects.length);
-        
         categorySelects.forEach(select => {
-            if (!select) return;
-            
-            console.log('Populating select:', select.id);
-            
-            // Clear existing options
-            select.innerHTML = '';
-            
             if (select.id === 'category-filter') {
                 select.innerHTML = '<option value="">All Categories</option>';
             } else {
@@ -671,22 +486,12 @@ class ComplaintManagementApp {
                 option.value = category.id;
                 option.textContent = `${category.icon} ${category.name}`;
                 select.appendChild(option);
-                console.log('Added category option:', option.textContent);
             });
         });
         
         // Priorities
         const prioritySelects = document.querySelectorAll('#complaint-priority, #priority-filter');
-        console.log('Found priority selects:', prioritySelects.length);
-        
         prioritySelects.forEach(select => {
-            if (!select) return;
-            
-            console.log('Populating select:', select.id);
-            
-            // Clear existing options
-            select.innerHTML = '';
-            
             if (select.id === 'priority-filter') {
                 select.innerHTML = '<option value="">All Priorities</option>';
             } else {
@@ -698,36 +503,18 @@ class ComplaintManagementApp {
                 option.value = priority.id;
                 option.textContent = priority.name;
                 select.appendChild(option);
-                console.log('Added priority option:', option.textContent);
             });
         });
         
         // Status filter
         const statusFilter = document.getElementById('status-filter');
         if (statusFilter) {
-            console.log('Populating status filter');
             statusFilter.innerHTML = '<option value="">All Status</option>';
             this.statuses.forEach(status => {
                 const option = document.createElement('option');
                 option.value = status.id;
                 option.textContent = status.name;
                 statusFilter.appendChild(option);
-                console.log('Added status option:', option.textContent);
-            });
-        }
-        
-        console.log('Form options populated successfully');
-    }
-    
-    populateBroadcastTemplates() {
-        const templateSelect = document.getElementById('broadcast-template');
-        if (templateSelect) {
-            templateSelect.innerHTML = '<option value="">Select Template</option>';
-            this.broadcastTemplates.forEach(template => {
-                const option = document.createElement('option');
-                option.value = template.id;
-                option.textContent = template.title;
-                templateSelect.appendChild(option);
             });
         }
     }
@@ -754,44 +541,464 @@ class ComplaintManagementApp {
         const targetPage = document.getElementById(`${route}-page`);
         if (targetPage) {
             targetPage.classList.remove('hidden');
+        } else {
+            console.error('Page not found:', `${route}-page`);
         }
         
         this.currentRoute = route;
         
-        // Load page content and populate options for each page
+        // Load page content
         switch (route) {
             case 'dashboard':
                 this.loadDashboard();
                 break;
+            case 'analytics':
+                this.loadAnalytics();
+                break;
             case 'complaints':
                 this.loadComplaints();
-                // Re-populate filter options
-                setTimeout(() => this.populateFormOptions(), 50);
                 break;
             case 'submit':
                 this.resetComplaintForm();
-                // Re-populate form options
-                setTimeout(() => this.populateFormOptions(), 50);
                 break;
-            case 'broadcast':
-                this.resetBroadcastForm();
-                setTimeout(() => this.populateBroadcastTemplates(), 50);
-                break;
-            case 'notifications':
-                this.loadNotificationsPage();
-                break;
-            case 'notification-settings':
-                this.loadNotificationSettings();
+            case 'profile':
+                // Profile is already populated
                 break;
         }
-        
-        // Re-bind filter events
-        setTimeout(() => this.bindFilterEvents(), 100);
     }
     
     loadDashboard() {
         this.updateStatistics();
         this.loadRecentComplaints();
+        
+        // Load quick analytics chart for non-admin users
+        if (this.currentUser && this.currentUser.role !== 'Admin') {
+            setTimeout(() => {
+                this.createQuickChart();
+            }, 100);
+        }
+    }
+
+    createQuickChart() {
+        const canvas = document.getElementById('quick-chart');
+        if (!canvas) return;
+
+        // Destroy existing chart
+        if (this.charts.quickChart) {
+            this.charts.quickChart.destroy();
+        }
+
+        const ctx = canvas.getContext('2d');
+        
+        // Status distribution data
+        const userComplaints = this.getUserComplaints();
+        const statusCounts = {
+            'Submitted': userComplaints.filter(c => c.status === 1).length,
+            'In Progress': userComplaints.filter(c => c.status === 2).length,
+            'Resolved': userComplaints.filter(c => c.status === 3).length
+        };
+
+        this.charts.quickChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusCounts),
+                datasets: [{
+                    data: Object.values(statusCounts),
+                    backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C'],
+                    borderWidth: 2,
+                    borderColor: '#1f2121'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#f5f5f5',
+                            font: { size: 12 }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Your Complaint Status',
+                        color: '#f5f5f5',
+                        font: { size: 16 }
+                    }
+                }
+            }
+        });
+    }
+
+    loadAnalytics() {
+        if (this.currentUser && this.currentUser.role === 'Admin') {
+            this.updateAnalyticsMetrics();
+            setTimeout(() => {
+                this.createAnalyticsCharts();
+            }, 100);
+        }
+    }
+
+    updateAnalyticsMetrics() {
+        // Update key metrics
+        const totalEl = document.getElementById('total-submissions');
+        const avgTimeEl = document.getElementById('avg-resolution-time');
+        const resolutionRateEl = document.getElementById('resolution-rate');
+        const satisfactionEl = document.getElementById('satisfaction-score');
+
+        if (totalEl) totalEl.textContent = '140';
+        if (avgTimeEl) avgTimeEl.textContent = '42.3h';
+        if (resolutionRateEl) resolutionRateEl.textContent = '84%';
+        if (satisfactionEl) satisfactionEl.textContent = '4.2';
+    }
+
+    createAnalyticsCharts() {
+        this.createMonthlyTrendsChart();
+        this.createStatusChart();
+        this.createCategoryChart();
+        this.createPriorityChart();
+        this.createDepartmentChart();
+        this.createResolutionTimeChart();
+    }
+
+    createMonthlyTrendsChart() {
+        const canvas = document.getElementById('monthly-trends-chart');
+        if (!canvas) return;
+
+        if (this.charts.monthlyTrends) {
+            this.charts.monthlyTrends.destroy();
+        }
+
+        const ctx = canvas.getContext('2d');
+        const data = this.analyticsData.monthlyTrends;
+
+        this.charts.monthlyTrends = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.month),
+                datasets: [
+                    {
+                        label: 'Submitted',
+                        data: data.map(d => d.submitted),
+                        borderColor: '#1FB8CD',
+                        backgroundColor: 'rgba(31, 184, 205, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Resolved',
+                        data: data.map(d => d.resolved),
+                        borderColor: '#B4413C',
+                        backgroundColor: 'rgba(180, 65, 60, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        labels: { color: '#f5f5f5' }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#a7a9a9' },
+                        grid: { color: 'rgba(167, 169, 169, 0.1)' }
+                    },
+                    y: {
+                        ticks: { color: '#a7a9a9' },
+                        grid: { color: 'rgba(167, 169, 169, 0.1)' }
+                    }
+                }
+            }
+        });
+    }
+
+    createStatusChart() {
+        const canvas = document.getElementById('status-chart');
+        if (!canvas) return;
+
+        if (this.charts.status) {
+            this.charts.status.destroy();
+        }
+
+        const ctx = canvas.getContext('2d');
+
+        this.charts.status = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Submitted', 'In Progress', 'Resolved'],
+                datasets: [{
+                    data: [28, 25, 87],
+                    backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C'],
+                    borderWidth: 2,
+                    borderColor: '#1f2121'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#f5f5f5',
+                            padding: 15
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    createCategoryChart() {
+        const canvas = document.getElementById('category-chart');
+        if (!canvas) return;
+
+        if (this.charts.category) {
+            this.charts.category.destroy();
+        }
+
+        const ctx = canvas.getContext('2d');
+        const data = this.analyticsData.categoryStats;
+
+        this.charts.category = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.category),
+                datasets: [{
+                    label: 'Complaint Count',
+                    data: data.map(d => d.count),
+                    backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F', '#DB4545', '#D2BA4C', '#964325'],
+                    borderWidth: 1,
+                    borderColor: '#1f2121'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#a7a9a9' },
+                        grid: { color: 'rgba(167, 169, 169, 0.1)' }
+                    },
+                    y: {
+                        ticks: { color: '#a7a9a9' },
+                        grid: { color: 'rgba(167, 169, 169, 0.1)' }
+                    }
+                }
+            }
+        });
+    }
+
+    createPriorityChart() {
+        const canvas = document.getElementById('priority-chart');
+        if (!canvas) return;
+
+        if (this.charts.priority) {
+            this.charts.priority.destroy();
+        }
+
+        const ctx = canvas.getContext('2d');
+        const data = this.analyticsData.priorityDistribution;
+
+        this.charts.priority = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: data.map(d => d.priority),
+                datasets: [{
+                    data: data.map(d => d.count),
+                    backgroundColor: ['#DB4545', '#FFC185', '#1FB8CD'],
+                    borderWidth: 2,
+                    borderColor: '#1f2121'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#f5f5f5',
+                            padding: 15
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    createDepartmentChart() {
+        const canvas = document.getElementById('department-chart');
+        if (!canvas) return;
+
+        if (this.charts.department) {
+            this.charts.department.destroy();
+        }
+
+        const ctx = canvas.getContext('2d');
+        const data = this.analyticsData.departmentPerformance;
+
+        this.charts.department = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.department.split(' ')[0]),
+                datasets: [
+                    {
+                        label: 'Efficiency (%)',
+                        data: data.map(d => d.efficiency),
+                        backgroundColor: '#1FB8CD',
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Avg Time (hours)',
+                        data: data.map(d => d.avgTime),
+                        backgroundColor: '#FFC185',
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#f5f5f5' }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#a7a9a9' },
+                        grid: { color: 'rgba(167, 169, 169, 0.1)' }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        ticks: { color: '#a7a9a9' },
+                        grid: { color: 'rgba(167, 169, 169, 0.1)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        ticks: { color: '#a7a9a9' },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+    }
+
+    createResolutionTimeChart() {
+        const canvas = document.getElementById('resolution-time-chart');
+        if (!canvas) return;
+
+        if (this.charts.resolutionTime) {
+            this.charts.resolutionTime.destroy();
+        }
+
+        const ctx = canvas.getContext('2d');
+
+        this.charts.resolutionTime = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['WiFi', 'Hostel', 'Food', 'Classroom', 'Maintenance', 'Academics'],
+                datasets: [{
+                    label: 'Avg Resolution Time (hours)',
+                    data: [48.2, 36.5, 42.8, 52.3, 58.7, 24.6],
+                    backgroundColor: 'rgba(31, 184, 205, 0.2)',
+                    borderColor: '#1FB8CD',
+                    pointBackgroundColor: '#1FB8CD',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#1FB8CD'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#f5f5f5' }
+                    }
+                },
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(167, 169, 169, 0.2)' },
+                        grid: { color: 'rgba(167, 169, 169, 0.2)' },
+                        pointLabels: { color: '#a7a9a9' },
+                        ticks: { color: '#a7a9a9', backdropColor: 'transparent' }
+                    }
+                }
+            }
+        });
+    }
+
+    exportAnalyticsReport() {
+        // Create a simple text report
+        const report = `
+COLLEGE COMPLAINT MANAGEMENT SYSTEM
+Analytics Report
+Generated on: ${new Date().toLocaleDateString()}
+
+=== KEY METRICS ===
+Total Submissions: 140
+Average Resolution Time: 42.3 hours
+Resolution Rate: 84%
+Satisfaction Score: 4.2/5
+
+=== CATEGORY BREAKDOWN ===
+${this.analyticsData.categoryStats.map(cat => 
+    `${cat.category}: ${cat.count} complaints (Avg: ${cat.avgResolutionTime}h)`
+).join('\n')}
+
+=== DEPARTMENT PERFORMANCE ===
+${this.analyticsData.departmentPerformance.map(dept => 
+    `${dept.department}: ${dept.efficiency}% efficiency, ${dept.avgTime}h avg time`
+).join('\n')}
+
+=== PRIORITY DISTRIBUTION ===
+${this.analyticsData.priorityDistribution.map(priority => 
+    `${priority.priority}: ${priority.count} complaints (${priority.percentage}%)`
+).join('\n')}
+
+Report generated by College Complaint Management System
+        `;
+
+        // Create and download the file
+        const blob = new Blob([report], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `analytics_report_${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        this.showToast('Analytics report exported successfully!', 'success');
+    }
+
+    updateAnalyticsPeriod() {
+        const period = document.getElementById('analytics-period').value;
+        console.log('Updated analytics period to:', period);
+        
+        // In a real app, this would filter the data based on the selected period
+        // For demo purposes, we'll just show a toast
+        this.showToast(`Analytics updated for last ${period} months`, 'success');
     }
     
     updateStatistics() {
@@ -839,7 +1046,7 @@ class ComplaintManagementApp {
         if (this.currentUser && this.currentUser.role === 'Student') {
             return this.complaints.filter(c => c.submittedBy === this.currentUser.id);
         } else {
-            return this.complaints;
+            return this.complaints; // Staff and Admin see all complaints
         }
     }
     
@@ -937,6 +1144,7 @@ class ComplaintManagementApp {
     
     handleComplaintSubmit(e) {
         e.preventDefault();
+        console.log('Handling complaint submission...');
         
         const titleEl = document.getElementById('complaint-title');
         const categoryEl = document.getElementById('complaint-category');
@@ -964,50 +1172,66 @@ class ComplaintManagementApp {
             description,
             category,
             priority,
-            status: 1,
+            status: 1, // Submitted
             submittedBy: this.currentUser.id,
             submittedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
+            assignedDept: this.categories.find(c => c.id === category)?.department || 1,
+            resolutionTime: null,
+            staffRating: null
         };
         
         this.complaints.push(complaint);
         this.saveComplaints();
         
-        // Send notification to admin about new complaint
-        this.sendNewComplaintNotification(complaint);
-        
         this.showToast('Complaint submitted successfully!', 'success');
         this.navigate('complaints');
         
-        // Simulate status updates
+        // Update analytics charts if they exist
+        this.updateChartsWithNewData();
+        
+        // Simulate real-time status updates for demo
         setTimeout(() => {
             this.simulateStatusUpdates(complaint.id);
         }, 5000);
     }
+
+    updateChartsWithNewData() {
+        // Update quick chart if it exists
+        if (this.charts.quickChart && this.currentUser.role !== 'Admin') {
+            setTimeout(() => {
+                this.createQuickChart();
+            }, 100);
+        }
+
+        // Update analytics charts if admin is viewing analytics
+        if (this.currentRoute === 'analytics' && this.currentUser.role === 'Admin') {
+            setTimeout(() => {
+                this.createAnalyticsCharts();
+            }, 100);
+        }
+    }
     
     simulateStatusUpdates(complaintId) {
+        // After 30 seconds, update to "In Progress"
         setTimeout(() => {
             if (this.complaints.find(c => c.id === complaintId)) {
                 this.updateComplaintStatus(complaintId, 2);
+                this.showToast('Your complaint is now being processed.', 'success');
             }
-        }, 15000);
+        }, 30000);
         
+        // After 2 minutes, update to "Resolved" (for demo purposes)
         setTimeout(() => {
             if (this.complaints.find(c => c.id === complaintId)) {
                 this.updateComplaintStatus(complaintId, 3);
+                this.showToast('Your complaint has been resolved!', 'success');
             }
-        }, 60000);
+        }, 120000);
     }
     
     resetComplaintForm() {
         const form = document.getElementById('complaint-form');
-        if (form) {
-            form.reset();
-        }
-    }
-    
-    resetBroadcastForm() {
-        const form = document.getElementById('broadcast-form');
         if (form) {
             form.reset();
         }
@@ -1053,8 +1277,10 @@ class ComplaintManagementApp {
             modalStatus.textContent = status.name;
         }
         
+        // Update progress tracker
         this.updateProgressTracker(complaint.status);
         
+        // Show modal
         const modal = document.getElementById('complaint-modal');
         if (modal) {
             modal.classList.remove('hidden');
@@ -1074,10 +1300,10 @@ class ComplaintManagementApp {
     }
     
     closeModal() {
-        const modals = document.querySelectorAll('.modal');
-        modals.forEach(modal => {
+        const modal = document.getElementById('complaint-modal');
+        if (modal) {
             modal.classList.add('hidden');
-        });
+        }
         this.currentComplaint = null;
     }
     
@@ -1085,13 +1311,17 @@ class ComplaintManagementApp {
         const complaintIndex = this.complaints.findIndex(c => c.id === complaintId);
         if (complaintIndex === -1) return;
         
-        const oldStatus = this.complaints[complaintIndex].status;
         this.complaints[complaintIndex].status = newStatus;
         this.complaints[complaintIndex].updatedAt = new Date().toISOString();
-        this.saveComplaints();
         
-        // Send status update notification
-        this.sendStatusUpdateNotification(this.complaints[complaintIndex], oldStatus, newStatus);
+        // Add resolution time for resolved complaints
+        if (newStatus === 3 && !this.complaints[complaintIndex].resolutionTime) {
+            const submitTime = new Date(this.complaints[complaintIndex].submittedAt);
+            const resolveTime = new Date();
+            this.complaints[complaintIndex].resolutionTime = (resolveTime - submitTime) / (1000 * 60 * 60); // hours
+        }
+        
+        this.saveComplaints();
         
         // Update UI
         if (this.currentRoute === 'dashboard') {
@@ -1100,7 +1330,10 @@ class ComplaintManagementApp {
             this.renderComplaints();
         }
         
-        // Update modal if open
+        // Update charts
+        this.updateChartsWithNewData();
+        
+        // Update modal if it's open
         if (this.currentComplaint && this.currentComplaint.id === complaintId) {
             this.currentComplaint.status = newStatus;
             const status = this.statuses.find(s => s.id === newStatus);
@@ -1116,505 +1349,10 @@ class ComplaintManagementApp {
         this.showToast(`Complaint ${complaintId} updated to: ${statusName}`, 'success');
     }
     
-    // Notification System Methods
-    loadNotifications() {
-        if (!this.currentUser) return;
-        
-        // Load user-specific notifications
-        const userNotifications = this.notifications.filter(n => 
-            n.userId === this.currentUser.id || 
-            n.userId === 'all' || 
-            (n.userId === this.currentUser.role)
-        );
-        
-        this.currentUserNotifications = userNotifications.sort((a, b) => 
-            new Date(b.timestamp) - new Date(a.timestamp)
-        );
-    }
-    
-    updateNotificationBadge() {
-        if (!this.currentUserNotifications) return;
-        
-        const unreadCount = this.currentUserNotifications.filter(n => !n.isRead).length;
-        const badge = document.getElementById('notification-count');
-        
-        if (badge) {
-            badge.textContent = unreadCount;
-            if (unreadCount > 0) {
-                badge.classList.remove('hidden');
-                badge.classList.add('pulse');
-            } else {
-                badge.classList.add('hidden');
-                badge.classList.remove('pulse');
-            }
-        }
-    }
-    
-    toggleNotificationDropdown() {
-        const dropdown = document.getElementById('notification-dropdown');
-        if (!dropdown) return;
-        
-        if (dropdown.classList.contains('show')) {
-            dropdown.classList.remove('show');
-        } else {
-            this.renderNotificationDropdown();
-            dropdown.classList.add('show');
-        }
-    }
-    
-    renderNotificationDropdown() {
-        const container = document.getElementById('notification-list');
-        if (!container || !this.currentUserNotifications) return;
-        
-        container.innerHTML = '';
-        
-        const recentNotifications = this.currentUserNotifications.slice(0, 5);
-        
-        if (recentNotifications.length === 0) {
-            container.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--color-text-secondary);">No notifications</p>';
-            return;
-        }
-        
-        recentNotifications.forEach(notification => {
-            const item = this.createNotificationItem(notification, true);
-            container.appendChild(item);
-        });
-    }
-    
-    createNotificationItem(notification, isDropdown = false) {
-        const notificationType = this.notificationTypes.find(t => t.id === notification.type);
-        const item = document.createElement('div');
-        item.className = `notification-item ${!notification.isRead ? 'unread' : ''}`;
-        item.setAttribute('data-notification-id', notification.id);
-        
-        item.innerHTML = `
-            <div class="notification-content">
-                <div class="notification-type">
-                    <span class="notification-type-icon">${notificationType ? notificationType.icon : '📬'}</span>
-                    <span class="notification-type-text ${notificationType ? notificationType.color : 'text-gray-400'}">${notificationType ? notificationType.name : 'Notification'}</span>
-                </div>
-                <div class="notification-title">${this.escapeHtml(notification.title)}</div>
-                <div class="notification-message">${this.escapeHtml(notification.message)}</div>
-                <div class="notification-time">${this.formatRelativeTime(notification.timestamp)}</div>
-            </div>
-        `;
-        
-        return item;
-    }
-    
-    handleNotificationClick(notificationId) {
-        const notification = this.currentUserNotifications.find(n => n.id === notificationId);
-        if (!notification) return;
-        
-        // Mark as read
-        this.markNotificationAsRead(notificationId);
-        
-        // Handle different notification types
-        if (notification.relatedComplaint) {
-            // Close dropdown and show complaint
-            const dropdown = document.getElementById('notification-dropdown');
-            if (dropdown) dropdown.classList.remove('show');
-            
-            this.navigate('complaints');
-            setTimeout(() => {
-                this.showComplaintModal(notification.relatedComplaint);
-            }, 100);
-        }
-    }
-    
-    markNotificationAsRead(notificationId) {
-        const notificationIndex = this.notifications.findIndex(n => n.id === notificationId);
-        if (notificationIndex !== -1) {
-            this.notifications[notificationIndex].isRead = true;
-            this.saveNotifications();
-            
-            // Update current user notifications
-            const userNotificationIndex = this.currentUserNotifications.findIndex(n => n.id === notificationId);
-            if (userNotificationIndex !== -1) {
-                this.currentUserNotifications[userNotificationIndex].isRead = true;
-            }
-            
-            this.updateNotificationBadge();
-            this.renderNotificationDropdown();
-        }
-    }
-    
-    markAllNotificationsAsRead() {
-        this.currentUserNotifications.forEach(notification => {
-            if (!notification.isRead) {
-                this.markNotificationAsRead(notification.id);
-            }
-        });
-        
-        this.showToast('All notifications marked as read', 'success');
-    }
-    
-    sendNotification(notification) {
-        notification.id = 'NOT' + Date.now();
-        notification.timestamp = new Date().toISOString();
-        
-        this.notifications.push(notification);
-        this.saveNotifications();
-        
-        // If notification is for current user, update UI
-        if (notification.userId === this.currentUser.id || 
-            notification.userId === 'all' || 
-            notification.userId === this.currentUser.role) {
-            
-            this.loadNotifications();
-            this.updateNotificationBadge();
-            
-            // Show toast
-            this.showToast(notification.title, 'info');
-            
-            // Play sound and shake bell
-            this.notificationSound.play();
-            this.animateNotificationBell();
-            
-            // Send push notification
-            this.sendPushNotification(notification);
-            
-            // Simulate email/SMS notifications
-            this.simulateEmailNotification(notification);
-            this.simulateSMSNotification(notification);
-        }
-    }
-    
-    sendStatusUpdateNotification(complaint, oldStatus, newStatus) {
-        const oldStatusName = this.statuses.find(s => s.id === oldStatus)?.name || 'Unknown';
-        const newStatusName = this.statuses.find(s => s.id === newStatus)?.name || 'Unknown';
-        
-        const notification = {
-            type: 1, // Status Update
-            title: 'Complaint Status Updated',
-            message: `Your complaint #${complaint.id} (${complaint.title}) status has been updated from ${oldStatusName} to ${newStatusName}`,
-            userId: complaint.submittedBy,
-            isRead: false,
-            relatedComplaint: complaint.id
-        };
-        
-        this.sendNotification(notification);
-    }
-    
-    sendNewComplaintNotification(complaint) {
-        const notification = {
-            type: 3, // System Alert
-            title: 'New Complaint Submitted',
-            message: `A new complaint #${complaint.id} (${complaint.title}) has been submitted and requires attention`,
-            userId: 'Admin', // Send to all admins
-            isRead: false,
-            relatedComplaint: complaint.id
-        };
-        
-        this.sendNotification(notification);
-    }
-    
-    sendWelcomeNotification() {
-        const notification = {
-            type: 4, // Welcome
-            title: 'Welcome to the Portal',
-            message: `Welcome ${this.currentUser.name}! You can now submit and track your complaints easily through this portal.`,
-            userId: this.currentUser.id,
-            isRead: false
-        };
-        
-        this.sendNotification(notification);
-    }
-    
-    hasWelcomeNotification() {
-        return this.notifications.some(n => 
-            n.type === 4 && 
-            n.userId === this.currentUser.id
-        );
-    }
-    
-    animateNotificationBell() {
-        const bell = document.getElementById('notification-bell');
-        if (bell) {
-            bell.classList.add('shake');
-            setTimeout(() => {
-                bell.classList.remove('shake');
-            }, 500);
-        }
-    }
-    
-    sendPushNotification(notification) {
-        if (!this.notificationPreferences.push) return;
-        
-        if ('Notification' in window && Notification.permission === 'granted') {
-            try {
-                new Notification(notification.title, {
-                    body: notification.message,
-                    icon: '/favicon.ico',
-                    tag: notification.id
-                });
-            } catch (e) {
-                console.warn('Could not send push notification:', e);
-            }
-        }
-    }
-    
-    simulateEmailNotification(notification) {
-        if (!this.notificationPreferences.email) return;
-        
-        setTimeout(() => {
-            this.showEmailPreview(notification);
-        }, 1000);
-    }
-    
-    simulateSMSNotification(notification) {
-        if (!this.notificationPreferences.sms) return;
-        
-        setTimeout(() => {
-            this.showSMSPreview(notification);
-        }, 2000);
-    }
-    
-    showEmailPreview(notification) {
-        const modal = document.getElementById('email-modal');
-        if (!modal) return;
-        
-        document.getElementById('email-to').textContent = this.currentUser.email;
-        document.getElementById('email-subject').textContent = `[College Portal] ${notification.title}`;
-        document.getElementById('email-content').innerHTML = `
-            <h3>${notification.title}</h3>
-            <p>Dear ${this.currentUser.name},</p>
-            <p>${notification.message}</p>
-            <p>You can view more details by logging into the College Portal.</p>
-            <p>Best regards,<br>College Administration</p>
-        `;
-        
-        modal.classList.remove('hidden');
-        
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 5000);
-    }
-    
-    showSMSPreview(notification) {
-        const modal = document.getElementById('sms-modal');
-        if (!modal) return;
-        
-        document.getElementById('sms-content').textContent = `College Portal: ${notification.message.substring(0, 160)}`;
-        
-        modal.classList.remove('hidden');
-        
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 4000);
-    }
-    
-    // Broadcast System
-    handleBroadcastSubmit(e) {
-        e.preventDefault();
-        
-        const titleEl = document.getElementById('broadcast-title');
-        const audienceEl = document.getElementById('broadcast-audience');
-        const priorityEl = document.getElementById('broadcast-priority');
-        const messageEl = document.getElementById('broadcast-message');
-        
-        if (!titleEl || !audienceEl || !priorityEl || !messageEl) {
-            this.showToast('Form error. Please refresh and try again.', 'error');
-            return;
-        }
-        
-        const title = titleEl.value.trim();
-        const audience = audienceEl.value;
-        const priority = priorityEl.value;
-        const message = messageEl.value.trim();
-        
-        if (!title || !audience || !priority || !message) {
-            this.showToast('Please fill in all required fields.', 'error');
-            return;
-        }
-        
-        this.sendBroadcastNotification({ title, audience, priority, message });
-    }
-    
-    previewBroadcast() {
-        const titleEl = document.getElementById('broadcast-title');
-        const audienceEl = document.getElementById('broadcast-audience');
-        const priorityEl = document.getElementById('broadcast-priority');
-        const messageEl = document.getElementById('broadcast-message');
-        
-        if (!titleEl.value || !audienceEl.value || !priorityEl.value || !messageEl.value) {
-            this.showToast('Please fill in all fields before preview.', 'error');
-            return;
-        }
-        
-        document.getElementById('preview-title').textContent = titleEl.value;
-        document.getElementById('preview-audience').textContent = audienceEl.value === 'all' ? 'All Users' : audienceEl.value + ' Only';
-        document.getElementById('preview-priority').textContent = priorityEl.value;
-        document.getElementById('preview-message').textContent = messageEl.value;
-        
-        const modal = document.getElementById('broadcast-preview-modal');
-        if (modal) {
-            modal.classList.remove('hidden');
-        }
-    }
-    
-    sendBroadcast() {
-        const titleEl = document.getElementById('broadcast-title');
-        const audienceEl = document.getElementById('broadcast-audience');
-        const priorityEl = document.getElementById('broadcast-priority');
-        const messageEl = document.getElementById('broadcast-message');
-        
-        const broadcastData = {
-            title: titleEl.value,
-            audience: audienceEl.value,
-            priority: priorityEl.value,
-            message: messageEl.value
-        };
-        
-        this.sendBroadcastNotification(broadcastData);
-        
-        // Close preview modal
-        const modal = document.getElementById('broadcast-preview-modal');
-        if (modal) {
-            modal.classList.add('hidden');
-        }
-    }
-    
-    sendBroadcastNotification(broadcastData) {
-        const notification = {
-            type: 2, // Broadcast
-            title: broadcastData.title,
-            message: broadcastData.message,
-            userId: broadcastData.audience,
-            isRead: false,
-            priority: broadcastData.priority
-        };
-        
-        this.sendNotification(notification);
-        
-        this.showToast(`Broadcast sent to ${broadcastData.audience === 'all' ? 'all users' : broadcastData.audience}!`, 'success');
-        this.resetBroadcastForm();
-    }
-    
-    populateBroadcastTemplate(templateId) {
-        if (!templateId) return;
-        
-        const template = this.broadcastTemplates.find(t => t.id === parseInt(templateId));
-        if (!template) return;
-        
-        const titleEl = document.getElementById('broadcast-title');
-        const messageEl = document.getElementById('broadcast-message');
-        
-        if (titleEl) titleEl.value = template.title;
-        if (messageEl) messageEl.value = template.template;
-    }
-    
-    // Notification Pages
-    loadNotificationsPage() {
-        this.renderNotificationsList('all');
-    }
-    
-    switchNotificationTab(tab) {
-        // Update tab active state
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-        
-        this.renderNotificationsList(tab);
-    }
-    
-    renderNotificationsList(filter) {
-        const container = document.getElementById('notifications-container');
-        if (!container || !this.currentUserNotifications) return;
-        
-        let filteredNotifications = [...this.currentUserNotifications];
-        
-        switch (filter) {
-            case 'unread':
-                filteredNotifications = filteredNotifications.filter(n => !n.isRead);
-                break;
-            case 'status':
-                filteredNotifications = filteredNotifications.filter(n => n.type === 1);
-                break;
-            case 'broadcast':
-                filteredNotifications = filteredNotifications.filter(n => n.type === 2);
-                break;
-        }
-        
-        container.innerHTML = '';
-        
-        if (filteredNotifications.length === 0) {
-            container.innerHTML = '<p style="padding: 2rem; text-align: center; color: var(--color-text-secondary);">No notifications found.</p>';
-            return;
-        }
-        
-        filteredNotifications.forEach(notification => {
-            const item = this.createNotificationItem(notification);
-            container.appendChild(item);
-        });
-    }
-    
-    loadNotificationSettings() {
-        const emailCheckbox = document.getElementById('email-notifications');
-        const smsCheckbox = document.getElementById('sms-notifications');
-        const pushCheckbox = document.getElementById('push-notifications');
-        const soundCheckbox = document.getElementById('sound-notifications');
-        
-        if (emailCheckbox) emailCheckbox.checked = this.notificationPreferences.email;
-        if (smsCheckbox) smsCheckbox.checked = this.notificationPreferences.sms;
-        if (pushCheckbox) pushCheckbox.checked = this.notificationPreferences.push;
-        if (soundCheckbox) soundCheckbox.checked = this.notificationPreferences.sound;
-    }
-    
-    saveSettings() {
-        const emailCheckbox = document.getElementById('email-notifications');
-        const smsCheckbox = document.getElementById('sms-notifications');
-        const pushCheckbox = document.getElementById('push-notifications');
-        const soundCheckbox = document.getElementById('sound-notifications');
-        
-        this.notificationPreferences = {
-            email: emailCheckbox ? emailCheckbox.checked : true,
-            sms: smsCheckbox ? smsCheckbox.checked : true,
-            push: pushCheckbox ? pushCheckbox.checked : true,
-            sound: soundCheckbox ? soundCheckbox.checked : true
-        };
-        
-        this.saveNotificationPreferences();
-        this.showToast('Settings saved successfully!', 'success');
-    }
-    
-    testNotifications() {
-        const testNotification = {
-            type: 3,
-            title: 'Test Notification',
-            message: 'This is a test notification to verify your settings are working correctly.',
-            userId: this.currentUser.id,
-            isRead: false
-        };
-        
-        this.sendNotification(testNotification);
-        this.showToast('Test notification sent!', 'info');
-    }
-    
     formatDate(dateString) {
         try {
             const date = new Date(dateString);
             return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        } catch (e) {
-            return 'Invalid date';
-        }
-    }
-    
-    formatRelativeTime(dateString) {
-        try {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
-            
-            if (diffMins < 1) return 'just now';
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffHours < 24) return `${diffHours}h ago`;
-            if (diffDays < 7) return `${diffDays}d ago`;
-            return date.toLocaleDateString();
         } catch (e) {
             return 'Invalid date';
         }
@@ -1634,34 +1372,21 @@ class ComplaintManagementApp {
     showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
-        
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'toast-close';
-        closeBtn.innerHTML = '×';
-        closeBtn.onclick = () => this.removeToast(toast);
-        
-        toast.innerHTML = `${message}`;
-        toast.appendChild(closeBtn);
+        toast.textContent = message;
         
         const container = document.getElementById('toast-container');
         if (container) {
             container.appendChild(toast);
             
-            // Auto remove toast after 4 seconds
-            setTimeout(() => {
-                this.removeToast(toast);
-            }, 4000);
-        }
-    }
-    
-    removeToast(toast) {
-        if (toast && toast.parentNode) {
-            toast.classList.add('removing');
+            // Remove toast after 4 seconds
             setTimeout(() => {
                 if (toast.parentNode) {
                     toast.remove();
                 }
-            }, 300);
+            }, 4000);
+        } else {
+            // Fallback to alert if toast container not found
+            alert(message);
         }
     }
 }
@@ -1676,26 +1401,20 @@ if (document.readyState === 'loading') {
     app = new ComplaintManagementApp();
 }
 
-// Additional utility functions
+// Additional utility functions and enhancements
 document.addEventListener('keydown', (e) => {
+    // Close modal on Escape key
     if (e.key === 'Escape') {
-        const modals = document.querySelectorAll('.modal:not(.hidden)');
-        modals.forEach(modal => {
-            modal.classList.add('hidden');
-        });
-        
-        const dropdown = document.getElementById('notification-dropdown');
-        if (dropdown && dropdown.classList.contains('show')) {
-            dropdown.classList.remove('show');
-        }
-        
-        if (app) {
-            app.currentComplaint = null;
+        const modal = document.getElementById('complaint-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+            if (app) {
+                app.closeModal();
+            }
         }
     }
 });
 
-// Form validation
+// Handle form validation with real-time feedback
 document.addEventListener('blur', (e) => {
     if (e.target.classList.contains('form-control') && e.target.hasAttribute('required')) {
         if (!e.target.value.trim()) {
@@ -1706,13 +1425,14 @@ document.addEventListener('blur', (e) => {
     }
 }, true);
 
+// Reset border color on focus
 document.addEventListener('focus', (e) => {
     if (e.target.classList.contains('form-control')) {
         e.target.style.borderColor = '';
     }
 }, true);
 
-// Error boundary
+// Add error boundary for better error handling
 window.addEventListener('error', (e) => {
     console.error('Application error:', e.error);
     if (app) {
