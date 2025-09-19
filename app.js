@@ -1,134 +1,38 @@
-// Enhanced College Complaint Management System with Analytics, Feedback & Accessibility
+// College Complaint Management System with Theme Toggle (Challenge 8) - Complete Application
 
 class ComplaintManagementApp {
     constructor() {
         this.currentUser = null;
         this.currentRoute = 'dashboard';
-        this.currentLanguage = 'en';
         this.complaints = [];
         this.categories = [];
         this.priorities = [];
         this.statuses = [];
         this.users = [];
         this.notifications = [];
-        this.charts = {};
-        this.feedbacks = [];
+        this.notificationTypes = [];
+        this.broadcastTemplates = [];
+        this.notificationPreferences = {
+            email: true,
+            sms: true,
+            push: true,
+            sound: true
+        };
         this.currentComplaint = null;
-        this.currentFeedbackComplaint = null;
+        this.notificationSound = null;
+        this.currentTheme = 'light';
+        this.analyticsChart = null;
         
-        // Accessibility settings
-        this.accessibilitySettings = {
-            highContrast: false,
-            fontSize: 'normal'
+        // Theme colors for charts
+        this.chartColors = {
+            light: ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F', '#DB4545', '#D2BA4C', '#964325', '#944454', '#13343B'],
+            dark: ['#38bdf8', '#fbbf24', '#f87171', '#34d399', '#cbd5e1', '#f472b6', '#a78bfa', '#fb7185', '#60a5fa', '#4ade80']
         };
         
-        // Load data from provided JSON
-        this.translations = {
-            "en": {
-                "title": "College Complaint Management System",
-                "login": "Login",
-                "email": "Email",
-                "password": "Password",
-                "role": "Role",
-                "student": "Student",
-                "staff": "Staff",
-                "admin": "Admin",
-                "dashboard": "Dashboard",
-                "complaints": "Complaints",
-                "submit_complaint": "Submit Complaint",
-                "analytics": "Analytics",
-                "notifications": "Notifications",
-                "settings": "Settings",
-                "logout": "Logout",
-                "total_complaints": "Total Complaints",
-                "resolution_rate": "Resolution Rate",
-                "avg_resolution_time": "Avg Resolution Time",
-                "feedback": "Feedback",
-                "rate_experience": "Rate your experience",
-                "submit_feedback": "Submit Feedback",
-                "accessibility": "Accessibility",
-                "high_contrast": "High Contrast",
-                "large_text": "Large Text",
-                "language": "Language",
-                "category": "Category",
-                "priority": "Priority",
-                "status": "Status",
-                "search": "Search",
-                "submit": "Submit",
-                "cancel": "Cancel",
-                "close": "Close",
-                "save": "Save",
-                "delete": "Delete",
-                "edit": "Edit",
-                "view_all": "View All",
-                "new_complaint": "New Complaint",
-                "complaint_submitted": "Complaint submitted successfully!",
-                "login_successful": "Login successful!",
-                "invalid_credentials": "Invalid credentials",
-                "loading": "Loading...",
-                "no_complaints": "No complaints found",
-                "recent_complaints": "Recent Complaints",
-                "all_categories": "All Categories",
-                "all_priorities": "All Priorities",
-                "all_status": "All Status",
-                "description": "Description",
-                "attachment": "Attachment",
-                "optional": "Optional"
-            },
-            "hi": {
-                "title": "कॉलेज शिकायत प्रबंधन प्रणाली",
-                "login": "लॉगिन",
-                "email": "ईमेल",
-                "password": "पासवर्ड",
-                "role": "भूमिका",
-                "student": "छात्र",
-                "staff": "स्टाफ",
-                "admin": "प्रशासक",
-                "dashboard": "डैशबोर्ड",
-                "complaints": "शिकायतें",
-                "submit_complaint": "शिकायत दर्ज करें",
-                "analytics": "विश्लेषण",
-                "notifications": "सूचनाएं",
-                "settings": "सेटिंग",
-                "logout": "लॉगआउट",
-                "total_complaints": "कुल शिकायतें",
-                "resolution_rate": "समाधान दर",
-                "avg_resolution_time": "औसत समाधान समय",
-                "feedback": "प्रतिक्रिया",
-                "rate_experience": "अपने अनुभव को रेट करें",
-                "submit_feedback": "प्रतिक्रिया भेजें",
-                "accessibility": "पहुंच",
-                "high_contrast": "उच्च कंट्रास्ट",
-                "large_text": "बड़ा टेक्स्ट",
-                "language": "भाषा",
-                "category": "श्रेणी",
-                "priority": "प्राथमिकता",
-                "status": "स्थिति",
-                "search": "खोजें",
-                "submit": "जमा करें",
-                "cancel": "रद्द करें",
-                "close": "बंद करें",
-                "save": "सहेजें",
-                "delete": "हटाएं",
-                "edit": "संपादित करें",
-                "view_all": "सभी देखें",
-                "new_complaint": "नई शिकायत",
-                "complaint_submitted": "शिकायत सफलतापूर्वक दर्ज की गई!",
-                "login_successful": "लॉगिन सफल!",
-                "invalid_credentials": "अमान्य क्रेडेंशियल",
-                "loading": "लोड हो रहा है...",
-                "no_complaints": "कोई शिकायत नहीं मिली",
-                "recent_complaints": "हाल की शिकायतें",
-                "all_categories": "सभी श्रेणियां",
-                "all_priorities": "सभी प्राथमिकताएं",
-                "all_status": "सभी स्थितियां",
-                "description": "विवरण",
-                "attachment": "अटैचमेंट",
-                "optional": "वैकल्पिक"
-            }
-        };
+        // Initialize theme first
+        this.initTheme();
         
-        // Wait for DOM to be fully loaded
+        // Wait for DOM to be fully loaded before initializing
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.init());
         } else {
@@ -136,71 +40,158 @@ class ComplaintManagementApp {
         }
     }
     
+    initTheme() {
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        
+        // Check system preference
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // Determine initial theme
+        if (savedTheme) {
+            this.currentTheme = savedTheme;
+        } else if (systemPrefersDark) {
+            this.currentTheme = 'dark';
+        } else {
+            this.currentTheme = 'light';
+        }
+        
+        // Apply theme immediately to prevent flash
+        document.documentElement.setAttribute('data-theme', this.currentTheme);
+        
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                this.setTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+    }
+    
+    setTheme(theme) {
+        this.currentTheme = theme;
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        
+        // Update theme toggle UI
+        this.updateThemeToggle();
+        
+        // Update chart colors if chart exists
+        if (this.analyticsChart) {
+            this.updateChartTheme();
+        }
+        
+        // Announce theme change to screen readers
+        const status = document.getElementById('theme-status');
+        if (status) {
+            status.textContent = `Current theme: ${theme} mode`;
+        }
+        
+        // Show toast notification
+        this.showToast(`Theme switched to ${theme} mode`, 'success');
+    }
+    
+    updateThemeToggle() {
+        const toggle = document.getElementById('theme-toggle');
+        if (toggle) {
+            toggle.setAttribute('aria-label', `Switch to ${this.currentTheme === 'light' ? 'dark' : 'light'} theme`);
+            toggle.title = `Switch to ${this.currentTheme === 'light' ? 'dark' : 'light'} theme`;
+        }
+    }
+    
     init() {
-        console.log('Initializing enhanced app...');
+        console.log('Initializing app...');
         this.loadMockData();
         this.loadUserSession();
-        this.loadAccessibilitySettings();
-        this.loadLanguageSettings();
+        this.initNotificationSound();
+        this.requestNotificationPermission();
         
+        // Wait a bit for DOM to be ready
         setTimeout(() => {
             this.bindEvents();
-            this.setupKeyboardShortcuts();
+            this.updateThemeToggle();
             this.hideLoading();
             
+            // Show login if no user session
             if (!this.currentUser) {
                 this.showLogin();
             } else {
                 this.showMainApp();
                 this.navigate('dashboard');
+                this.loadNotifications();
+                this.updateNotificationBadge();
             }
         }, 500);
     }
     
     loadMockData() {
-        console.log('Loading enhanced mock data...');
-        
-        // Users with enhanced data
+        console.log('Loading mock data...');
+        // Mock users with notification preferences
         this.users = [
-            {"email": "student@college.edu", "password": "demo123", "role": "Student", "name": "राहुल शर्मा", "id": "STU001", "phone": "+91-9876543210"},
-            {"email": "staff@college.edu", "password": "demo123", "role": "Staff", "name": "प्रिया पटेल", "id": "STF001", "phone": "+91-9876543211"},
-            {"email": "admin@college.edu", "password": "demo123", "role": "Admin", "name": "अमित कुमार", "id": "ADM001", "phone": "+91-9876543212"}
+            {"email": "student@college.edu", "password": "demo123", "role": "Student", "name": "John Doe", "id": "STU001", "phone": "+91-9876543210", "notificationPrefs": {"email": true, "sms": true, "push": true}},
+            {"email": "staff@college.edu", "password": "demo123", "role": "Staff", "name": "Jane Smith", "id": "STF001", "phone": "+91-9876543211", "notificationPrefs": {"email": true, "sms": false, "push": true}},
+            {"email": "admin@college.edu", "password": "demo123", "role": "Admin", "name": "Admin User", "id": "ADM001", "phone": "+91-9876543212", "notificationPrefs": {"email": true, "sms": true, "push": true}}
         ];
         
-        // Enhanced categories with departments
+        // Categories
         this.categories = [
-            {"id": 1, "name": "WiFi", "nameHi": "वाईफाई", "icon": "📶", "color": "bg-blue-500", "department": "IT Department"},
-            {"id": 2, "name": "Hostel", "nameHi": "छात्रावास", "icon": "🏠", "color": "bg-purple-500", "department": "Hostel Administration"},
-            {"id": 3, "name": "Food", "nameHi": "भोजन", "icon": "🍽️", "color": "bg-orange-500", "department": "Mess Management"},
-            {"id": 4, "name": "Classroom", "nameHi": "कक्षा", "icon": "🏫", "color": "bg-green-500", "department": "Academic Affairs"},
-            {"id": 5, "name": "Maintenance", "nameHi": "रखरखाव", "icon": "🔧", "color": "bg-yellow-500", "department": "Maintenance Department"},
-            {"id": 6, "name": "Academics", "nameHi": "शिक्षा", "icon": "📚", "color": "bg-indigo-500", "department": "Academic Affairs"},
-            {"id": 7, "name": "Harassment", "nameHi": "उत्पीड़न", "icon": "⚠️", "color": "bg-red-500", "department": "Student Affairs"},
-            {"id": 8, "name": "Other", "nameHi": "अन्य", "icon": "❓", "color": "bg-gray-500", "department": "General Administration"}
+            {"id": 1, "name": "WiFi", "icon": "📶", "color": "bg-blue-500"},
+            {"id": 2, "name": "Hostel", "icon": "🏠", "color": "bg-purple-500"},
+            {"id": 3, "name": "Food", "icon": "🍽️", "color": "bg-orange-500"},
+            {"id": 4, "name": "Classroom", "icon": "🏫", "color": "bg-green-500"},
+            {"id": 5, "name": "Maintenance", "icon": "🔧", "color": "bg-yellow-500"},
+            {"id": 6, "name": "Academics", "icon": "📚", "color": "bg-indigo-500"},
+            {"id": 7, "name": "Harassment", "icon": "⚠️", "color": "bg-red-500"},
+            {"id": 8, "name": "Other", "icon": "❓", "color": "bg-gray-500"}
         ];
         
-        // Enhanced priorities with target times
+        // Priorities
         this.priorities = [
-            {"id": 1, "name": "Urgent", "nameHi": "तत्काल", "color": "bg-red-500", "textColor": "text-red-500", "targetTime": 4},
-            {"id": 2, "name": "Medium", "nameHi": "मध्यम", "color": "bg-orange-500", "textColor": "text-orange-500", "targetTime": 24},
-            {"id": 3, "name": "Low", "nameHi": "कम", "color": "bg-green-500", "textColor": "text-green-500", "targetTime": 72}
+            {"id": 1, "name": "Urgent", "color": "bg-red-500", "textColor": "text-red-500"},
+            {"id": 2, "name": "Medium", "color": "bg-orange-500", "textColor": "text-orange-500"},
+            {"id": 3, "name": "Low", "color": "bg-green-500", "textColor": "text-green-500"}
         ];
         
-        // Enhanced statuses
+        // Statuses
         this.statuses = [
-            {"id": 1, "name": "Submitted", "nameHi": "प्रस्तुत", "color": "bg-blue-500", "textColor": "text-blue-500"},
-            {"id": 2, "name": "In Progress", "nameHi": "प्रगति में", "color": "bg-yellow-500", "textColor": "text-yellow-500"},
-            {"id": 3, "name": "Resolved", "nameHi": "समाधान हो गया", "color": "bg-green-500", "textColor": "text-green-500"}
+            {"id": 1, "name": "Submitted", "color": "bg-blue-500", "textColor": "text-blue-500"},
+            {"id": 2, "name": "In Progress", "color": "bg-yellow-500", "textColor": "text-yellow-500"},
+            {"id": 3, "name": "Resolved", "color": "bg-green-500", "textColor": "text-green-500"}
         ];
         
-        // Load complaints and feedbacks
-        const savedComplaints = localStorage.getItem('complaints');
-        const savedFeedbacks = localStorage.getItem('feedbacks');
+        // Notification Types
+        this.notificationTypes = [
+            {"id": 1, "name": "Status Update", "icon": "🔄", "color": "text-blue-400"},
+            {"id": 2, "name": "Broadcast", "icon": "📢", "color": "text-purple-400"},
+            {"id": 3, "name": "System Alert", "icon": "⚠️", "color": "text-red-400"},
+            {"id": 4, "name": "Welcome", "icon": "👋", "color": "text-green-400"}
+        ];
         
+        // Broadcast Templates
+        this.broadcastTemplates = [
+            {
+                "id": 1,
+                "title": "System Maintenance",
+                "template": "The complaint portal will be under maintenance on {date} from {startTime} to {endTime}. Please plan accordingly."
+            },
+            {
+                "id": 2,
+                "title": "Holiday Notice",
+                "template": "The college will be closed on {date} due to {reason}. All complaint processing will resume on {resumeDate}."
+            },
+            {
+                "id": 3,
+                "title": "New Feature Announcement",
+                "template": "We're excited to announce a new feature: {featureName}. {description}"
+            }
+        ];
+        
+        // Load complaints from localStorage or use mock data
+        const savedComplaints = localStorage.getItem('complaints');
         if (savedComplaints) {
             try {
                 this.complaints = JSON.parse(savedComplaints);
             } catch (e) {
+                console.error('Error loading saved complaints:', e);
                 this.complaints = this.getDefaultComplaints();
             }
         } else {
@@ -208,48 +199,112 @@ class ComplaintManagementApp {
             this.saveComplaints();
         }
         
-        if (savedFeedbacks) {
+        // Load notifications from localStorage or use mock data
+        const savedNotifications = localStorage.getItem('notifications');
+        if (savedNotifications) {
             try {
-                this.feedbacks = JSON.parse(savedFeedbacks);
+                this.notifications = JSON.parse(savedNotifications);
             } catch (e) {
-                this.feedbacks = this.getDefaultFeedbacks();
+                console.error('Error loading saved notifications:', e);
+                this.notifications = this.getDefaultNotifications();
             }
         } else {
-            this.feedbacks = this.getDefaultFeedbacks();
-            this.saveFeedbacks();
+            this.notifications = this.getDefaultNotifications();
+            this.saveNotifications();
         }
-        
-        // Load notifications
-        this.loadNotifications();
     }
     
     getDefaultComplaints() {
         return [
             {
-                "id": "COMP001", "title": "WiFi not working in Block A", "titleHi": "ब्लॉक A में वाईफाई काम नहीं कर रहा",
-                "description": "WiFi connectivity issues in hostel rooms", "category": 1, "priority": 1, "status": 3,
-                "submittedBy": "STU001", "submittedAt": "2025-09-15T08:30:00Z", "updatedAt": "2025-09-17T14:00:00Z",
-                "resolutionTime": 53.5
+                "id": "COMP001",
+                "title": "WiFi not working in Block A",
+                "description": "The WiFi connection is very slow and keeps disconnecting in Block A hostel rooms.",
+                "category": 1,
+                "priority": 1,
+                "status": 2,
+                "submittedBy": "STU001",
+                "submittedAt": "2025-09-19T08:30:00Z",
+                "updatedAt": "2025-09-19T10:15:00Z"
             },
             {
-                "id": "COMP002", "title": "Mess food quality poor", "titleHi": "मेस का खाना खराब है",
-                "description": "Food quality deteriorated", "category": 3, "priority": 2, "status": 2,
-                "submittedBy": "STU001", "submittedAt": "2025-09-16T14:20:00Z", "updatedAt": "2025-09-18T10:15:00Z",
-                "resolutionTime": null
+                "id": "COMP002",
+                "title": "Mess food quality poor",
+                "description": "The food quality in the mess has deteriorated significantly over the past week.",
+                "category": 3,
+                "priority": 2,
+                "status": 1,
+                "submittedBy": "STU001",
+                "submittedAt": "2025-09-18T14:20:00Z",
+                "updatedAt": "2025-09-18T14:20:00Z"
             },
             {
-                "id": "COMP003", "title": "AC not working in Room 101", "titleHi": "कमरा 101 में AC काम नहीं कर रहा",
-                "description": "Air conditioning malfunction", "category": 4, "priority": 2, "status": 3,
-                "submittedBy": "STU001", "submittedAt": "2025-09-12T09:15:00Z", "updatedAt": "2025-09-14T16:30:00Z",
-                "resolutionTime": 55.25
+                "id": "COMP003",
+                "title": "AC not working in Room 101",
+                "description": "The air conditioning unit in classroom 101 has been malfunctioning for 3 days.",
+                "category": 4,
+                "priority": 2,
+                "status": 3,
+                "submittedBy": "STU001",
+                "submittedAt": "2025-09-17T09:15:00Z",
+                "updatedAt": "2025-09-19T11:00:00Z"
+            },
+            {
+                "id": "COMP004",
+                "title": "Water leakage in hostel bathroom",
+                "description": "There is a continuous water leakage from the ceiling in Block B bathroom.",
+                "category": 5,
+                "priority": 1,
+                "status": 2,
+                "submittedBy": "STU001",
+                "submittedAt": "2025-09-19T07:45:00Z",
+                "updatedAt": "2025-09-19T09:30:00Z"
+            },
+            {
+                "id": "COMP005",
+                "title": "Missing assignment submission portal",
+                "description": "Cannot find the assignment submission link for Advanced Programming course.",
+                "category": 6,
+                "priority": 2,
+                "status": 1,
+                "submittedBy": "STU001",
+                "submittedAt": "2025-09-19T11:00:00Z",
+                "updatedAt": "2025-09-19T11:00:00Z"
             }
         ];
     }
     
-    getDefaultFeedbacks() {
+    getDefaultNotifications() {
         return [
-            {"complaintId": "COMP001", "rating": 4, "comment": "Good response time", "submittedAt": "2025-09-17T15:00:00Z"},
-            {"complaintId": "COMP003", "rating": 5, "comment": "Excellent service", "submittedAt": "2025-09-14T17:00:00Z"}
+            {
+                "id": "NOT001",
+                "type": 1,
+                "title": "Complaint Status Updated",
+                "message": "Your complaint #COMP001 (WiFi not working in Block A) status has been updated to In Progress",
+                "timestamp": "2025-09-19T10:15:00Z",
+                "isRead": false,
+                "userId": "STU001",
+                "relatedComplaint": "COMP001"
+            },
+            {
+                "id": "NOT002",
+                "type": 2,
+                "title": "System Maintenance Notice",
+                "message": "The complaint portal will be under maintenance on Saturday 21st Sept from 2 AM to 4 AM. Please plan accordingly.",
+                "timestamp": "2025-09-19T09:00:00Z",
+                "isRead": true,
+                "userId": "all",
+                "priority": "Medium"
+            },
+            {
+                "id": "NOT003",
+                "type": 4,
+                "title": "Welcome to the Portal",
+                "message": "Welcome to the College Complaint Management System! You can now submit and track your complaints easily.",
+                "timestamp": "2025-09-19T08:00:00Z",
+                "isRead": false,
+                "userId": "STU001"
+            }
         ];
     }
     
@@ -258,61 +313,18 @@ class ComplaintManagementApp {
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
                 this.currentUser = JSON.parse(savedUser);
+                console.log('Loaded user session:', this.currentUser);
+                
+                // Load user notification preferences
+                const savedPrefs = localStorage.getItem(`notificationPrefs_${this.currentUser.id}`);
+                if (savedPrefs) {
+                    this.notificationPreferences = JSON.parse(savedPrefs);
+                }
             }
         } catch (e) {
             console.error('Error loading user session:', e);
             localStorage.removeItem('currentUser');
         }
-    }
-    
-    loadAccessibilitySettings() {
-        try {
-            const saved = localStorage.getItem('accessibilitySettings');
-            if (saved) {
-                this.accessibilitySettings = { ...this.accessibilitySettings, ...JSON.parse(saved) };
-                this.applyAccessibilitySettings();
-            }
-        } catch (e) {
-            console.error('Error loading accessibility settings:', e);
-        }
-    }
-    
-    loadLanguageSettings() {
-        try {
-            const saved = localStorage.getItem('currentLanguage');
-            if (saved) {
-                this.currentLanguage = saved;
-            }
-        } catch (e) {
-            console.error('Error loading language settings:', e);
-        }
-    }
-    
-    loadNotifications() {
-        // Generate sample notifications
-        this.notifications = [
-            {
-                id: 'not1',
-                type: 'info',
-                title: this.t('complaint_submitted'),
-                message: 'Your complaint COMP001 has been submitted',
-                timestamp: new Date().toISOString(),
-                read: false
-            },
-            {
-                id: 'not2',
-                type: 'success',
-                title: 'Status Updated',
-                message: 'Complaint COMP003 has been resolved',
-                timestamp: new Date(Date.now() - 3600000).toISOString(),
-                read: false
-            }
-        ];
-    }
-    
-    // Translation helper
-    t(key) {
-        return this.translations[this.currentLanguage]?.[key] || key;
     }
     
     saveUserSession() {
@@ -331,79 +343,127 @@ class ComplaintManagementApp {
         }
     }
     
-    saveFeedbacks() {
+    saveNotifications() {
         try {
-            localStorage.setItem('feedbacks', JSON.stringify(this.feedbacks));
+            localStorage.setItem('notifications', JSON.stringify(this.notifications));
         } catch (e) {
-            console.error('Error saving feedbacks:', e);
+            console.error('Error saving notifications:', e);
         }
     }
     
-    saveAccessibilitySettings() {
+    saveNotificationPreferences() {
         try {
-            localStorage.setItem('accessibilitySettings', JSON.stringify(this.accessibilitySettings));
+            localStorage.setItem(`notificationPrefs_${this.currentUser.id}`, JSON.stringify(this.notificationPreferences));
         } catch (e) {
-            console.error('Error saving accessibility settings:', e);
+            console.error('Error saving notification preferences:', e);
         }
     }
     
-    saveLanguageSettings() {
-        try {
-            localStorage.setItem('currentLanguage', this.currentLanguage);
-        } catch (e) {
-            console.error('Error saving language settings:', e);
+    initNotificationSound() {
+        // Create a simple notification sound using Web Audio API
+        this.notificationSound = {
+            play: () => {
+                if (!this.notificationPreferences.sound) return;
+                
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                } catch (e) {
+                    console.warn('Could not play notification sound:', e);
+                }
+            }
+        };
+    }
+    
+    requestNotificationPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
         }
     }
     
     bindEvents() {
-        console.log('Binding enhanced events...');
+        console.log('Binding events...');
+        
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => this.toggleTheme());
+            themeToggle.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.toggleTheme();
+                }
+            });
+        }
         
         // Login form
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
-            loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleLogin(e);
+            });
         }
         
         // Navigation
         document.addEventListener('click', (e) => {
-            if (e.target.hasAttribute('data-route') || e.target.closest('[data-route]')) {
+            if (e.target.hasAttribute('data-route')) {
                 e.preventDefault();
-                const element = e.target.hasAttribute('data-route') ? e.target : e.target.closest('[data-route]');
-                const route = element.getAttribute('data-route');
+                const route = e.target.getAttribute('data-route');
                 this.navigate(route);
             }
         });
         
-        // Mobile navigation toggle
-        const navToggle = document.getElementById('nav-mobile-toggle');
-        const navLinks = document.getElementById('nav-links');
-        if (navToggle && navLinks) {
-            navToggle.addEventListener('click', () => {
-                navToggle.classList.toggle('active');
-                navLinks.classList.toggle('active');
-            });
-        }
-        
-        // Language switcher
-        const languageSelect = document.getElementById('language-select');
-        if (languageSelect) {
-            languageSelect.value = this.currentLanguage;
-            languageSelect.addEventListener('change', (e) => {
-                this.switchLanguage(e.target.value);
-            });
-        }
-        
-        // Accessibility controls
-        this.bindAccessibilityEvents();
-        
         // Logout
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
+            console.log('Logout button found, binding click event');
             logoutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
+                console.log('Logout button clicked');
                 this.handleLogout();
             });
+        } else {
+            console.warn('Logout button not found');
         }
+        
+        // Notification Bell
+        const notificationBell = document.getElementById('notification-bell');
+        if (notificationBell) {
+            notificationBell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleNotificationDropdown();
+            });
+        }
+        
+        // Mark all notifications as read
+        const markAllReadBtn = document.getElementById('mark-all-read');
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', () => {
+                this.markAllNotificationsAsRead();
+            });
+        }
+        
+        // Close notification dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('notification-dropdown');
+            if (dropdown && !dropdown.contains(e.target) && !e.target.closest('#notification-bell')) {
+                dropdown.classList.remove('show');
+            }
+        });
         
         // Complaint form
         const complaintForm = document.getElementById('complaint-form');
@@ -411,36 +471,60 @@ class ComplaintManagementApp {
             complaintForm.addEventListener('submit', (e) => this.handleComplaintSubmit(e));
         }
         
-        // Feedback form
-        this.bindFeedbackEvents();
+        // Broadcast form
+        const broadcastForm = document.getElementById('broadcast-form');
+        if (broadcastForm) {
+            broadcastForm.addEventListener('submit', (e) => this.handleBroadcastSubmit(e));
+        }
         
-        // Filters
+        // Preview broadcast
+        const previewBroadcastBtn = document.getElementById('preview-broadcast');
+        if (previewBroadcastBtn) {
+            previewBroadcastBtn.addEventListener('click', () => this.previewBroadcast());
+        }
+        
+        // Confirm broadcast
+        const confirmBroadcastBtn = document.getElementById('confirm-broadcast');
+        if (confirmBroadcastBtn) {
+            confirmBroadcastBtn.addEventListener('click', () => this.sendBroadcast());
+        }
+        
+        // Broadcast templates
+        const broadcastTemplateSelect = document.getElementById('broadcast-template');
+        if (broadcastTemplateSelect) {
+            broadcastTemplateSelect.addEventListener('change', (e) => {
+                this.populateBroadcastTemplate(e.target.value);
+            });
+        }
+        
+        // Notification settings
+        const saveSettingsBtn = document.getElementById('save-settings');
+        if (saveSettingsBtn) {
+            saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+        }
+        
+        const testNotificationsBtn = document.getElementById('test-notifications');
+        if (testNotificationsBtn) {
+            testNotificationsBtn.addEventListener('click', () => this.testNotifications());
+        }
+        
+        // Notification tabs
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('tab-btn')) {
+                this.switchNotificationTab(e.target.getAttribute('data-tab'));
+            }
+        });
+        
+        // Filters - bind immediately after a delay to ensure elements exist
         setTimeout(() => {
             this.bindFilterEvents();
-        }, 1000);
+        }, 100);
         
-        // Modal events
-        this.bindModalEvents();
-        
-        // Notifications
-        const notificationsBtn = document.getElementById('notifications-btn');
-        if (notificationsBtn) {
-            notificationsBtn.addEventListener('click', () => this.showNotifications());
-        }
-        
-        // Export analytics
-        const exportBtn = document.getElementById('export-analytics-btn');
-        if (exportBtn) {
-            exportBtn.addEventListener('click', () => this.exportAnalytics());
-        }
-        
-        // Complaint card clicks
+        // Modal close
         document.addEventListener('click', (e) => {
-            const complaintCard = e.target.closest('.complaint-card');
-            if (complaintCard && !e.target.closest('button')) {
+            if (e.target.hasAttribute('data-close-modal')) {
                 e.preventDefault();
-                const complaintId = complaintCard.getAttribute('data-complaint-id');
-                this.showComplaintModal(complaintId);
+                this.closeModal();
             }
         });
         
@@ -454,78 +538,42 @@ class ComplaintManagementApp {
                 }
             }
         });
-    }
-    
-    bindAccessibilityEvents() {
-        // Accessibility toggle
-        const accessibilityToggle = document.getElementById('accessibility-toggle');
-        const accessibilityDropdown = document.getElementById('accessibility-dropdown');
         
-        if (accessibilityToggle && accessibilityDropdown) {
-            accessibilityToggle.addEventListener('click', () => {
-                const isExpanded = accessibilityToggle.getAttribute('aria-expanded') === 'true';
-                accessibilityToggle.setAttribute('aria-expanded', !isExpanded);
-                accessibilityDropdown.classList.toggle('active');
-            });
-            
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!accessibilityToggle.contains(e.target) && !accessibilityDropdown.contains(e.target)) {
-                    accessibilityToggle.setAttribute('aria-expanded', 'false');
-                    accessibilityDropdown.classList.remove('active');
-                }
-            });
-        }
-        
-        // High contrast toggle
-        const highContrastToggle = document.getElementById('high-contrast-toggle');
-        if (highContrastToggle) {
-            highContrastToggle.checked = this.accessibilitySettings.highContrast;
-            highContrastToggle.addEventListener('change', (e) => {
-                this.accessibilitySettings.highContrast = e.target.checked;
-                this.applyAccessibilitySettings();
-                this.saveAccessibilitySettings();
-            });
-        }
-        
-        // Font size control
-        const fontSizeControl = document.getElementById('font-size-control');
-        if (fontSizeControl) {
-            fontSizeControl.value = this.accessibilitySettings.fontSize;
-            fontSizeControl.addEventListener('change', (e) => {
-                this.accessibilitySettings.fontSize = e.target.value;
-                this.applyAccessibilitySettings();
-                this.saveAccessibilitySettings();
-            });
-        }
-    }
-    
-    bindFeedbackEvents() {
-        // Star rating
+        // Complaint card clicks
         document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('star') && e.target.hasAttribute('data-rating')) {
-                const rating = parseInt(e.target.getAttribute('data-rating'));
-                this.selectRating(rating);
+            const complaintCard = e.target.closest('.complaint-card');
+            if (complaintCard && !e.target.closest('button')) {
+                e.preventDefault();
+                const complaintId = complaintCard.getAttribute('data-complaint-id');
+                this.showComplaintModal(complaintId);
             }
         });
         
-        // Submit feedback
-        const submitFeedbackBtn = document.getElementById('submit-feedback-btn');
-        if (submitFeedbackBtn) {
-            submitFeedbackBtn.addEventListener('click', () => this.submitFeedback());
-        }
+        // Notification item clicks
+        document.addEventListener('click', (e) => {
+            const notificationItem = e.target.closest('.notification-item');
+            if (notificationItem) {
+                const notificationId = notificationItem.getAttribute('data-notification-id');
+                this.handleNotificationClick(notificationId);
+            }
+        });
         
-        // Skip feedback
-        const skipFeedbackBtn = document.getElementById('skip-feedback-btn');
-        if (skipFeedbackBtn) {
-            skipFeedbackBtn.addEventListener('click', () => this.closeFeedbackModal());
-        }
+        // Toast close buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('toast-close')) {
+                const toast = e.target.closest('.toast');
+                if (toast) {
+                    this.removeToast(toast);
+                }
+            }
+        });
         
-        // Close feedback modal
-        const feedbackModalClose = document.getElementById('feedback-modal-close');
-        if (feedbackModalClose) {
-            feedbackModalClose.addEventListener('click', () => this.closeFeedbackModal());
-        }
+        console.log('Events bound successfully');
+    }
+    
+    toggleTheme() {
+        const newTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+        this.setTheme(newTheme);
     }
     
     bindFilterEvents() {
@@ -534,185 +582,21 @@ class ComplaintManagementApp {
         const statusFilter = document.getElementById('status-filter');
         const searchFilter = document.getElementById('search-filter');
         
-        if (categoryFilter) categoryFilter.addEventListener('change', () => this.applyFilters());
-        if (priorityFilter) priorityFilter.addEventListener('change', () => this.applyFilters());
-        if (statusFilter) statusFilter.addEventListener('change', () => this.applyFilters());
-        if (searchFilter) searchFilter.addEventListener('input', () => this.applyFilters());
-    }
-    
-    bindModalEvents() {
-        // Close modals
-        document.addEventListener('click', (e) => {
-            if (e.target.hasAttribute('data-close-modal')) {
-                e.preventDefault();
-                this.closeModal();
-            }
-        });
-        
-        // Close modal on escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.closeModal();
-                this.closeFeedbackModal();
-                this.closeNotificationsModal();
-            }
-        });
-    }
-    
-    setupKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            if (e.altKey) {
-                switch (e.key.toLowerCase()) {
-                    case 'd':
-                        e.preventDefault();
-                        this.navigate('dashboard');
-                        break;
-                    case 'c':
-                        e.preventDefault();
-                        this.navigate('complaints');
-                        break;
-                    case 'n':
-                        e.preventDefault();
-                        this.showNotifications();
-                        break;
-                    case 's':
-                        e.preventDefault();
-                        if (this.currentUser && this.currentUser.role === 'Student') {
-                            this.navigate('submit');
-                        }
-                        break;
-                    case 'a':
-                        e.preventDefault();
-                        if (this.currentUser && this.currentUser.role === 'Admin') {
-                            this.navigate('analytics');
-                        }
-                        break;
-                }
-            }
-        });
-    }
-    
-    applyAccessibilitySettings() {
-        const body = document.body;
-        
-        // High contrast
-        if (this.accessibilitySettings.highContrast) {
-            body.classList.add('high-contrast');
-        } else {
-            body.classList.remove('high-contrast');
+        if (categoryFilter) {
+            console.log('Binding category filter');
+            categoryFilter.addEventListener('change', () => this.applyFilters());
         }
-        
-        // Font size
-        body.classList.remove('large-text', 'larger-text');
-        if (this.accessibilitySettings.fontSize === 'large') {
-            body.classList.add('large-text');
-        } else if (this.accessibilitySettings.fontSize === 'larger') {
-            body.classList.add('larger-text');
+        if (priorityFilter) {
+            console.log('Binding priority filter');
+            priorityFilter.addEventListener('change', () => this.applyFilters());
         }
-    }
-    
-    switchLanguage(language) {
-        this.currentLanguage = language;
-        this.saveLanguageSettings();
-        this.updateLanguageTexts();
-        
-        // Update page direction for RTL languages
-        if (language === 'hi') {
-            document.dir = 'ltr'; // Hindi uses LTR, but keeping this for extensibility
-        } else {
-            document.dir = 'ltr';
+        if (statusFilter) {
+            console.log('Binding status filter');
+            statusFilter.addEventListener('change', () => this.applyFilters());
         }
-        
-        this.showToast(this.t('language') + ' ' + (language === 'hi' ? 'हिंदी' : 'English'), 'success');
-    }
-    
-    updateLanguageTexts() {
-        // Update all text elements with translation keys
-        const elements = document.querySelectorAll('[id]');
-        elements.forEach(element => {
-            const id = element.id;
-            
-            // Map element IDs to translation keys
-            const translations = {
-                'loading-text': 'loading',
-                'login-title': 'title',
-                'email-label': 'email',
-                'password-label': 'password',
-                'role-label': 'role',
-                'student-option': 'student',
-                'staff-option': 'staff',
-                'admin-option': 'admin',
-                'login-btn': 'login',
-                'nav-dashboard-text': 'dashboard',
-                'nav-complaints-text': 'complaints',
-                'nav-submit-text': 'submit_complaint',
-                'nav-analytics-text': 'analytics',
-                'nav-profile-text': 'profile',
-                'logout-text': 'logout',
-                'dashboard-title': 'dashboard',
-                'total-complaints-label': 'total_complaints',
-                'pending-complaints-label': 'pending',
-                'progress-complaints-label': 'in_progress',
-                'resolved-complaints-label': 'resolved',
-                'recent-complaints-title': 'recent_complaints',
-                'view-all-btn': 'view_all',
-                'complaints-title': 'complaints',
-                'new-complaint-btn': 'new_complaint',
-                'category-filter-label': 'category',
-                'priority-filter-label': 'priority',
-                'status-filter-label': 'status',
-                'search-filter-label': 'search',
-                'submit-title': 'submit_complaint',
-                'complaint-title-label': 'title',
-                'complaint-category-label': 'category',
-                'complaint-priority-label': 'priority',
-                'complaint-description-label': 'description',
-                'cancel-btn': 'cancel',
-                'submit-complaint-btn': 'submit',
-                'analytics-title': 'analytics',
-                'export-text': 'export',
-                'feedback-modal-title': 'rate_experience',
-                'submit-feedback-btn': 'submit_feedback'
-            };
-            
-            if (translations[id]) {
-                const key = translations[id];
-                const translation = this.t(key);
-                
-                if (element.tagName === 'INPUT' || element.tagName === 'BUTTON') {
-                    if (element.type === 'submit' || element.tagName === 'BUTTON') {
-                        element.textContent = translation;
-                    } else {
-                        element.placeholder = translation;
-                    }
-                } else {
-                    element.textContent = translation;
-                }
-            }
-        });
-        
-        // Update option texts
-        const options = document.querySelectorAll('option');
-        options.forEach(option => {
-            const id = option.id;
-            const translations = {
-                'select-role-option': 'select_role',
-                'all-categories-option': 'all_categories',
-                'all-priorities-option': 'all_priorities',
-                'all-status-option': 'all_status',
-                'select-category-option': 'select_category',
-                'select-priority-option': 'select_priority'
-            };
-            
-            if (translations[id]) {
-                option.textContent = this.t(translations[id]);
-            }
-        });
-        
-        // Update placeholders
-        const searchInput = document.getElementById('search-filter');
-        if (searchInput) {
-            searchInput.placeholder = this.t('search') + ' ' + this.t('complaints').toLowerCase() + '...';
+        if (searchFilter) {
+            console.log('Binding search filter');
+            searchFilter.addEventListener('input', () => this.applyFilters());
         }
     }
     
@@ -730,8 +614,6 @@ class ComplaintManagementApp {
         
         if (loginPage) loginPage.classList.remove('hidden');
         if (mainApp) mainApp.classList.add('hidden');
-        
-        this.updateLanguageTexts();
     }
     
     showMainApp() {
@@ -744,23 +626,43 @@ class ComplaintManagementApp {
         
         this.updateUserInfo();
         this.updateRoleVisibility();
-        this.populateFormOptions();
-        this.updateLanguageTexts();
-        this.updateNotificationCount();
+        
+        // Populate form options immediately
+        setTimeout(() => {
+            this.populateFormOptions();
+            this.populateBroadcastTemplates();
+            this.loadNotificationSettings();
+        }, 100);
+        
+        // Send welcome notification for new users
+        if (!this.hasWelcomeNotification()) {
+            this.sendWelcomeNotification();
+        }
     }
     
     handleLogin(e) {
+        console.log('Handling login...');
         e.preventDefault();
         
-        const email = document.getElementById('email')?.value.trim();
-        const password = document.getElementById('password')?.value.trim();
-        const role = document.getElementById('role')?.value;
+        const emailEl = document.getElementById('email');
+        const passwordEl = document.getElementById('password');
+        const roleEl = document.getElementById('role');
         
-        if (!email || !password || !role) {
-            this.showToast(this.t('please_fill_all_fields'), 'error');
+        if (!emailEl || !passwordEl || !roleEl) {
+            this.showToast('Login form error. Please refresh and try again.', 'error');
             return;
         }
         
+        const email = emailEl.value.trim();
+        const password = passwordEl.value.trim();
+        const role = roleEl.value;
+        
+        if (!email || !password || !role) {
+            this.showToast('Please fill in all fields.', 'error');
+            return;
+        }
+        
+        // Find user
         const user = this.users.find(u => 
             u.email === email && 
             u.password === password && 
@@ -768,48 +670,62 @@ class ComplaintManagementApp {
         );
         
         if (user) {
+            console.log('Login successful for user:', user.name);
             this.currentUser = user;
             this.saveUserSession();
             this.showMainApp();
             this.navigate('dashboard');
-            this.showToast(this.t('login_successful') + ' ' + user.name, 'success');
+            this.loadNotifications();
+            this.updateNotificationBadge();
+            this.showToast('Login successful! Welcome ' + user.name, 'success');
         } else {
-            this.showToast(this.t('invalid_credentials'), 'error');
+            this.showToast('Invalid credentials. Please check email, password, and role.', 'error');
         }
     }
     
     handleLogout() {
+        console.log('Logging out user:', this.currentUser?.name);
         this.currentUser = null;
+        this.notifications = [];
+        this.currentUserNotifications = [];
         localStorage.removeItem('currentUser');
+        
+        // Destroy chart if it exists
+        if (this.analyticsChart) {
+            this.analyticsChart.destroy();
+            this.analyticsChart = null;
+        }
+        
         this.showLogin();
-        this.showToast(this.t('logout') + ' ' + this.t('successful'), 'success');
+        this.showToast('Logged out successfully!', 'success');
         
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
             loginForm.reset();
         }
+        
+        // Reset body data-role attribute
+        document.body.removeAttribute('data-role');
     }
     
     updateUserInfo() {
         if (this.currentUser) {
-            const elements = {
-                'user-name': this.currentUser.name,
-                'user-role': this.currentUser.role,
-                'profile-name': this.currentUser.name,
-                'profile-email': this.currentUser.email,
-                'profile-role': this.currentUser.role
-            };
+            const userNameEl = document.getElementById('user-name');
+            const userRoleEl = document.getElementById('user-role');
+            const profileNameEl = document.getElementById('profile-name');
+            const profileEmailEl = document.getElementById('profile-email');
+            const profileRoleEl = document.getElementById('profile-role');
+            const avatarInitialsEl = document.getElementById('avatar-initials');
             
-            Object.entries(elements).forEach(([id, value]) => {
-                const element = document.getElementById(id);
-                if (element) element.textContent = value;
-            });
+            if (userNameEl) userNameEl.textContent = this.currentUser.name;
+            if (userRoleEl) userRoleEl.textContent = this.currentUser.role;
+            if (profileNameEl) profileNameEl.textContent = this.currentUser.name;
+            if (profileEmailEl) profileEmailEl.textContent = this.currentUser.email;
+            if (profileRoleEl) profileRoleEl.textContent = this.currentUser.role;
             
-            // Update avatar initials
-            const avatarInitials = document.getElementById('avatar-initials');
-            if (avatarInitials) {
+            if (avatarInitialsEl) {
                 const initials = this.currentUser.name.split(' ').map(n => n[0]).join('');
-                avatarInitials.textContent = initials;
+                avatarInitialsEl.textContent = initials;
             }
         }
     }
@@ -821,50 +737,88 @@ class ComplaintManagementApp {
     }
     
     populateFormOptions() {
+        console.log('Populating form options...');
+        
         // Categories
         const categorySelects = document.querySelectorAll('#complaint-category, #category-filter');
+        console.log('Found category selects:', categorySelects.length);
+        
         categorySelects.forEach(select => {
-            const isFilter = select.id === 'category-filter';
-            select.innerHTML = isFilter ? 
-                `<option value="">${this.t('all_categories')}</option>` : 
-                `<option value="">${this.t('select_category')}</option>`;
+            if (!select) return;
+            
+            console.log('Populating select:', select.id);
+            
+            // Clear existing options
+            select.innerHTML = '';
+            
+            if (select.id === 'category-filter') {
+                select.innerHTML = '<option value="">All Categories</option>';
+            } else {
+                select.innerHTML = '<option value="">Select Category</option>';
+            }
             
             this.categories.forEach(category => {
                 const option = document.createElement('option');
                 option.value = category.id;
-                const name = this.currentLanguage === 'hi' ? category.nameHi : category.name;
-                option.textContent = `${category.icon} ${name}`;
+                option.textContent = `${category.icon} ${category.name}`;
                 select.appendChild(option);
+                console.log('Added category option:', option.textContent);
             });
         });
         
         // Priorities
         const prioritySelects = document.querySelectorAll('#complaint-priority, #priority-filter');
+        console.log('Found priority selects:', prioritySelects.length);
+        
         prioritySelects.forEach(select => {
-            const isFilter = select.id === 'priority-filter';
-            select.innerHTML = isFilter ? 
-                `<option value="">${this.t('all_priorities')}</option>` : 
-                `<option value="">${this.t('select_priority')}</option>`;
+            if (!select) return;
+            
+            console.log('Populating select:', select.id);
+            
+            // Clear existing options
+            select.innerHTML = '';
+            
+            if (select.id === 'priority-filter') {
+                select.innerHTML = '<option value="">All Priorities</option>';
+            } else {
+                select.innerHTML = '<option value="">Select Priority</option>';
+            }
             
             this.priorities.forEach(priority => {
                 const option = document.createElement('option');
                 option.value = priority.id;
-                const name = this.currentLanguage === 'hi' ? priority.nameHi : priority.name;
-                option.textContent = name;
+                option.textContent = priority.name;
                 select.appendChild(option);
+                console.log('Added priority option:', option.textContent);
             });
         });
         
         // Status filter
         const statusFilter = document.getElementById('status-filter');
         if (statusFilter) {
-            statusFilter.innerHTML = `<option value="">${this.t('all_status')}</option>`;
+            console.log('Populating status filter');
+            statusFilter.innerHTML = '<option value="">All Status</option>';
             this.statuses.forEach(status => {
                 const option = document.createElement('option');
                 option.value = status.id;
-                const name = this.currentLanguage === 'hi' ? status.nameHi : status.name;
-                option.textContent = name;
+                option.textContent = status.name;
                 statusFilter.appendChild(option);
+                console.log('Added status option:', option.textContent);
+            });
+        }
+        
+        console.log('Form options populated successfully');
+    }
+    
+    populateBroadcastTemplates() {
+        const templateSelect = document.getElementById('broadcast-template');
+        if (templateSelect) {
+            templateSelect.innerHTML = '<option value="">Select Template</option>';
+            this.broadcastTemplates.forEach(template => {
+                const option = document.createElement('option');
+                option.value = template.id;
+                option.textContent = template.title;
+                templateSelect.appendChild(option);
             });
         }
     }
@@ -873,13 +827,14 @@ class ComplaintManagementApp {
         console.log('Navigating to:', route);
         
         // Update navigation active state
-        document.querySelectorAll('.nav-link, .mobile-nav-item').forEach(link => {
+        document.querySelectorAll('.nav-link').forEach(link => {
             link.classList.remove('active');
         });
         
-        document.querySelectorAll(`[data-route="${route}"]`).forEach(link => {
-            link.classList.add('active');
-        });
+        const activeLink = document.querySelector(`[data-route="${route}"]`);
+        if (activeLink) {
+            activeLink.classList.add('active');
+        }
         
         // Hide all pages
         document.querySelectorAll('.page').forEach(page => {
@@ -894,266 +849,113 @@ class ComplaintManagementApp {
         
         this.currentRoute = route;
         
-        // Load page content
+        // Load page content and populate options for each page
         switch (route) {
             case 'dashboard':
                 this.loadDashboard();
                 break;
             case 'complaints':
                 this.loadComplaints();
-                break;
-            case 'analytics':
-                this.loadAnalytics();
+                // Re-populate filter options
+                setTimeout(() => this.populateFormOptions(), 50);
                 break;
             case 'submit':
                 this.resetComplaintForm();
+                // Re-populate form options
+                setTimeout(() => this.populateFormOptions(), 50);
+                break;
+            case 'broadcast':
+                this.resetBroadcastForm();
+                setTimeout(() => this.populateBroadcastTemplates(), 50);
+                break;
+            case 'notifications':
+                this.loadNotificationsPage();
+                break;
+            case 'notification-settings':
+                this.loadNotificationSettings();
                 break;
         }
         
-        // Close mobile nav
-        const navToggle = document.getElementById('nav-mobile-toggle');
-        const navLinks = document.getElementById('nav-links');
-        if (navToggle && navLinks) {
-            navToggle.classList.remove('active');
-            navLinks.classList.remove('active');
-        }
+        // Re-bind filter events
+        setTimeout(() => this.bindFilterEvents(), 100);
     }
     
     loadDashboard() {
         this.updateStatistics();
         this.loadRecentComplaints();
-        
-        // Load quick analytics charts for admin
-        if (this.currentUser && this.currentUser.role === 'Admin') {
-            setTimeout(() => {
-                this.loadQuickCharts();
-            }, 100);
-        }
+        this.createAnalyticsChart();
     }
     
-    loadQuickCharts() {
-        this.createMonthlyTrendsChart('monthly-trends-chart');
-        this.createSatisfactionChart('satisfaction-chart');
-    }
-    
-    loadAnalytics() {
-        if (this.currentUser && this.currentUser.role === 'Admin') {
-            this.updateAnalyticsStats();
-            setTimeout(() => {
-                this.loadAnalyticsCharts();
-                this.loadPerformanceTable();
-            }, 100);
-        }
-    }
-    
-    loadAnalyticsCharts() {
-        this.createDetailedTrendsChart();
-        this.createCategoryChart();
-        this.createSatisfactionBreakdownChart();
-    }
-    
-    createMonthlyTrendsChart(canvasId) {
-        const canvas = document.getElementById(canvasId);
+    createAnalyticsChart() {
+        const canvas = document.getElementById('analytics-chart');
         if (!canvas) return;
-        
-        const ctx = canvas.getContext('2d');
         
         // Destroy existing chart
-        if (this.charts[canvasId]) {
-            this.charts[canvasId].destroy();
+        if (this.analyticsChart) {
+            this.analyticsChart.destroy();
         }
-        
-        const data = [
-            {"month": "Apr", "submitted": 15, "resolved": 12, "avgRating": 4.2},
-            {"month": "May", "submitted": 22, "resolved": 20, "avgRating": 4.3},
-            {"month": "Jun", "submitted": 18, "resolved": 16, "avgRating": 4.1},
-            {"month": "Jul", "submitted": 25, "resolved": 21, "avgRating": 4.4},
-            {"month": "Aug", "submitted": 32, "resolved": 28, "avgRating": 4.2},
-            {"month": "Sep", "submitted": 28, "resolved": 22, "avgRating": 4.5}
-        ];
-        
-        this.charts[canvasId] = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.map(d => d.month),
-                datasets: [{
-                    label: 'Submitted',
-                    data: data.map(d => d.submitted),
-                    borderColor: '#1FB8CD',
-                    backgroundColor: 'rgba(31, 184, 205, 0.1)',
-                    tension: 0.4
-                }, {
-                    label: 'Resolved',
-                    data: data.map(d => d.resolved),
-                    borderColor: '#FFC185',
-                    backgroundColor: 'rgba(255, 193, 133, 0.1)',
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#f5f5f5'
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        ticks: { color: '#a7a9a9' },
-                        grid: { color: 'rgba(167, 169, 169, 0.1)' }
-                    },
-                    y: {
-                        ticks: { color: '#a7a9a9' },
-                        grid: { color: 'rgba(167, 169, 169, 0.1)' }
-                    }
-                }
-            }
-        });
-    }
-    
-    createSatisfactionChart(canvasId) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
         
         const ctx = canvas.getContext('2d');
+        const colors = this.chartColors[this.currentTheme];
         
-        if (this.charts[canvasId]) {
-            this.charts[canvasId].destroy();
-        }
+        // Generate analytics data
+        const analyticsData = this.generateAnalyticsData();
         
-        this.charts[canvasId] = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star'],
-                datasets: [{
-                    data: [102, 89, 35, 12, 7],
-                    backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#f5f5f5',
-                            padding: 15
-                        }
-                    }
-                }
-            }
-        });
-    }
-    
-    createDetailedTrendsChart() {
-        const canvas = document.getElementById('detailed-trends-chart');
-        if (!canvas) return;
-        
-        const ctx = canvas.getContext('2d');
-        
-        if (this.charts['detailed-trends']) {
-            this.charts['detailed-trends'].destroy();
-        }
-        
-        const data = [
-            {"month": "Apr", "submitted": 15, "resolved": 12, "avgRating": 4.2},
-            {"month": "May", "submitted": 22, "resolved": 20, "avgRating": 4.3},
-            {"month": "Jun", "submitted": 18, "resolved": 16, "avgRating": 4.1},
-            {"month": "Jul", "submitted": 25, "resolved": 21, "avgRating": 4.4},
-            {"month": "Aug", "submitted": 32, "resolved": 28, "avgRating": 4.2},
-            {"month": "Sep", "submitted": 28, "resolved": 22, "avgRating": 4.5}
-        ];
-        
-        this.charts['detailed-trends'] = new Chart(ctx, {
+        this.analyticsChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: data.map(d => d.month),
+                labels: ['WiFi', 'Hostel', 'Food', 'Classroom', 'Maintenance', 'Academics'],
                 datasets: [{
                     label: 'Submitted',
-                    data: data.map(d => d.submitted),
-                    backgroundColor: '#1FB8CD',
-                    yAxisID: 'y'
+                    data: analyticsData.submitted,
+                    backgroundColor: colors[0],
+                    borderColor: colors[0],
+                    borderWidth: 1
+                }, {
+                    label: 'In Progress',
+                    data: analyticsData.inProgress,
+                    backgroundColor: colors[1],
+                    borderColor: colors[1],
+                    borderWidth: 1
                 }, {
                     label: 'Resolved',
-                    data: data.map(d => d.resolved),
-                    backgroundColor: '#FFC185',
-                    yAxisID: 'y'
-                }, {
-                    label: 'Avg Rating',
-                    data: data.map(d => d.avgRating),
-                    type: 'line',
-                    borderColor: '#B4413C',
-                    backgroundColor: 'rgba(180, 65, 60, 0.1)',
-                    yAxisID: 'y1',
-                    tension: 0.4
+                    data: analyticsData.resolved,
+                    backgroundColor: colors[2],
+                    borderColor: colors[2],
+                    borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
+                    title: {
+                        display: true,
+                        text: 'Complaint Status by Category',
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim()
+                    },
                     legend: {
                         labels: {
-                            color: '#f5f5f5'
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim()
                         }
                     }
                 },
                 scales: {
                     x: {
-                        ticks: { color: '#a7a9a9' },
-                        grid: { color: 'rgba(167, 169, 169, 0.1)' }
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim()
+                        },
+                        grid: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim()
+                        }
                     },
                     y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        ticks: { color: '#a7a9a9' },
-                        grid: { color: 'rgba(167, 169, 169, 0.1)' }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        ticks: { color: '#a7a9a9' },
-                        grid: { drawOnChartArea: false }
-                    }
-                }
-            }
-        });
-    }
-    
-    createCategoryChart() {
-        const canvas = document.getElementById('category-chart');
-        if (!canvas) return;
-        
-        const ctx = canvas.getContext('2d');
-        
-        if (this.charts['category']) {
-            this.charts['category'].destroy();
-        }
-        
-        this.charts['category'] = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: this.categories.map(c => this.currentLanguage === 'hi' ? c.nameHi : c.name),
-                datasets: [{
-                    data: [25, 18, 15, 12, 10, 8, 7, 5],
-                    backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F', '#DB4545', '#D2BA4C', '#964325']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#f5f5f5',
-                            padding: 10
+                        beginAtZero: true,
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim()
+                        },
+                        grid: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim()
                         }
                     }
                 }
@@ -1161,147 +963,68 @@ class ComplaintManagementApp {
         });
     }
     
-    createSatisfactionBreakdownChart() {
-        const canvas = document.getElementById('satisfaction-breakdown-chart');
-        if (!canvas) return;
+    updateChartTheme() {
+        if (!this.analyticsChart) return;
         
-        const ctx = canvas.getContext('2d');
+        const colors = this.chartColors[this.currentTheme];
+        const textColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim();
+        const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim();
         
-        if (this.charts['satisfaction-breakdown']) {
-            this.charts['satisfaction-breakdown'].destroy();
-        }
+        // Update dataset colors
+        this.analyticsChart.data.datasets.forEach((dataset, index) => {
+            dataset.backgroundColor = colors[index];
+            dataset.borderColor = colors[index];
+        });
         
-        this.charts['satisfaction-breakdown'] = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
-                datasets: [{
-                    label: 'Count',
-                    data: [7, 12, 35, 89, 102],
-                    backgroundColor: ['#DB4545', '#D2BA4C', '#964325', '#FFC185', '#1FB8CD']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    x: {
-                        ticks: { color: '#a7a9a9' },
-                        grid: { color: 'rgba(167, 169, 169, 0.1)' }
-                    },
-                    y: {
-                        ticks: { color: '#a7a9a9' },
-                        grid: { color: 'rgba(167, 169, 169, 0.1)' }
-                    }
-                }
+        // Update text colors
+        this.analyticsChart.options.plugins.title.color = textColor;
+        this.analyticsChart.options.plugins.legend.labels.color = textColor;
+        this.analyticsChart.options.scales.x.ticks.color = textColor;
+        this.analyticsChart.options.scales.y.ticks.color = textColor;
+        this.analyticsChart.options.scales.x.grid.color = gridColor;
+        this.analyticsChart.options.scales.y.grid.color = gridColor;
+        
+        this.analyticsChart.update();
+    }
+    
+    generateAnalyticsData() {
+        const data = {
+            submitted: [0, 0, 0, 0, 0, 0],
+            inProgress: [0, 0, 0, 0, 0, 0],
+            resolved: [0, 0, 0, 0, 0, 0]
+        };
+        
+        const userComplaints = this.getUserComplaints();
+        
+        userComplaints.forEach(complaint => {
+            const categoryIndex = complaint.category - 1;
+            if (categoryIndex >= 0 && categoryIndex < 6) {
+                if (complaint.status === 1) data.submitted[categoryIndex]++;
+                else if (complaint.status === 2) data.inProgress[categoryIndex]++;
+                else if (complaint.status === 3) data.resolved[categoryIndex]++;
             }
         });
+        
+        return data;
     }
     
     updateStatistics() {
         const userComplaints = this.getUserComplaints();
         
-        const stats = {
-            total: userComplaints.length,
-            pending: userComplaints.filter(c => c.status === 1).length,
-            progress: userComplaints.filter(c => c.status === 2).length,
-            resolved: userComplaints.filter(c => c.status === 3).length
-        };
+        const totalComplaints = userComplaints.length;
+        const pendingComplaints = userComplaints.filter(c => c.status === 1).length;
+        const progressComplaints = userComplaints.filter(c => c.status === 2).length;
+        const resolvedComplaints = userComplaints.filter(c => c.status === 3).length;
         
-        const elements = {
-            'total-complaints': stats.total,
-            'pending-complaints': stats.pending,
-            'progress-complaints': stats.progress,
-            'resolved-complaints': stats.resolved
-        };
+        const totalEl = document.getElementById('total-complaints');
+        const pendingEl = document.getElementById('pending-complaints');
+        const progressEl = document.getElementById('progress-complaints');
+        const resolvedEl = document.getElementById('resolved-complaints');
         
-        Object.entries(elements).forEach(([id, value]) => {
-            const element = document.getElementById(id);
-            if (element) element.textContent = value;
-        });
-    }
-    
-    updateAnalyticsStats() {
-        const elements = {
-            'overall-rating': '4.3',
-            'resolution-rate': '84%',
-            'avg-resolution-time': '2.3'
-        };
-        
-        Object.entries(elements).forEach(([id, value]) => {
-            const element = document.getElementById(id);
-            if (element) element.textContent = value;
-        });
-        
-        // Update star display
-        this.updateStarDisplay('overall-stars', 4.3);
-    }
-    
-    updateStarDisplay(elementId, rating) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-        
-        element.innerHTML = '';
-        for (let i = 1; i <= 5; i++) {
-            const star = document.createElement('span');
-            star.className = 'star';
-            star.textContent = '★';
-            if (i <= Math.floor(rating)) {
-                star.classList.add('filled');
-            } else if (i - 0.5 <= rating) {
-                star.classList.add('half');
-            } else {
-                star.classList.add('empty');
-            }
-            element.appendChild(star);
-        }
-    }
-    
-    loadPerformanceTable() {
-        const tbody = document.getElementById('performance-table-body');
-        if (!tbody) return;
-        
-        const departments = [
-            { name: 'IT Department', complaints: 45, resolved: 38, avgTime: '1.8 days', rating: 4.2 },
-            { name: 'Hostel Administration', complaints: 32, resolved: 28, avgTime: '2.1 days', rating: 4.0 },
-            { name: 'Mess Management', complaints: 28, resolved: 25, avgTime: '1.5 days', rating: 4.4 },
-            { name: 'Academic Affairs', complaints: 22, resolved: 20, avgTime: '3.2 days', rating: 3.8 },
-            { name: 'Maintenance', complaints: 35, resolved: 30, avgTime: '2.8 days', rating: 4.1 }
-        ];
-        
-        tbody.innerHTML = '';
-        departments.forEach(dept => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${dept.name}</td>
-                <td>${dept.complaints}</td>
-                <td>${dept.resolved}</td>
-                <td>${dept.avgTime}</td>
-                <td>
-                    <div class="rating-display">
-                        <span>${dept.rating}</span>
-                        <div class="star-display">
-                            ${this.generateStarHTML(dept.rating)}
-                        </div>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
-    
-    generateStarHTML(rating) {
-        let html = '';
-        for (let i = 1; i <= 5; i++) {
-            const filled = i <= Math.floor(rating);
-            html += `<span class="star ${filled ? 'filled' : 'empty'}">★</span>`;
-        }
-        return html;
+        if (totalEl) totalEl.textContent = totalComplaints;
+        if (pendingEl) pendingEl.textContent = pendingComplaints;
+        if (progressEl) progressEl.textContent = progressComplaints;
+        if (resolvedEl) resolvedEl.textContent = resolvedComplaints;
     }
     
     loadRecentComplaints() {
@@ -1316,7 +1039,7 @@ class ComplaintManagementApp {
         container.innerHTML = '';
         
         if (recentComplaints.length === 0) {
-            container.innerHTML = `<p style="color: var(--color-text-secondary); text-align: center; padding: 2rem;">${this.t('no_complaints')}</p>`;
+            container.innerHTML = '<p style="color: var(--theme-text-secondary); text-align: center; padding: 2rem;">No complaints found.</p>';
             return;
         }
         
@@ -1348,7 +1071,7 @@ class ComplaintManagementApp {
         container.innerHTML = '';
         
         if (filteredComplaints.length === 0) {
-            container.innerHTML = `<p style="color: var(--color-text-secondary); text-align: center; padding: 2rem;">${this.t('no_complaints')}</p>`;
+            container.innerHTML = '<p style="color: var(--theme-text-secondary); text-align: center; padding: 2rem;">No complaints match your filters.</p>';
             return;
         }
         
@@ -1404,13 +1127,6 @@ class ComplaintManagementApp {
         const card = document.createElement('div');
         card.className = 'complaint-card';
         card.setAttribute('data-complaint-id', complaint.id);
-        card.setAttribute('role', 'listitem');
-        card.setAttribute('tabindex', '0');
-        card.setAttribute('aria-label', `Complaint ${complaint.id}: ${complaint.title}`);
-        
-        const categoryName = category ? (this.currentLanguage === 'hi' ? category.nameHi : category.name) : 'Unknown';
-        const priorityName = priority ? (this.currentLanguage === 'hi' ? priority.nameHi : priority.name) : 'Unknown';
-        const statusName = status ? (this.currentLanguage === 'hi' ? status.nameHi : status.name) : 'Unknown';
         
         card.innerHTML = `
             <div class="complaint-header">
@@ -1423,20 +1139,12 @@ class ComplaintManagementApp {
             <p class="complaint-description">${this.escapeHtml(complaint.description)}</p>
             <div class="complaint-badges">
                 <span class="badge category-badge">
-                    ${category ? category.icon : '❓'} ${categoryName}
+                    ${category ? category.icon : '❓'} ${category ? category.name : 'Unknown'}
                 </span>
-                <span class="badge priority-badge ${priority ? priority.name.toLowerCase() : 'low'}">${priorityName}</span>
-                <span class="badge status-badge ${status ? status.name.toLowerCase().replace(' ', '-') : 'submitted'}">${statusName}</span>
+                <span class="badge priority-badge ${priority ? priority.name.toLowerCase() : 'low'}">${priority ? priority.name : 'Unknown'}</span>
+                <span class="badge status-badge ${status ? status.name.toLowerCase().replace(' ', '-') : 'submitted'}">${status ? status.name : 'Unknown'}</span>
             </div>
         `;
-        
-        // Add keyboard support
-        card.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                this.showComplaintModal(complaint.id);
-            }
-        });
         
         return card;
     }
@@ -1459,33 +1167,8 @@ class ComplaintManagementApp {
         const priority = parseInt(priorityEl.value);
         const description = descriptionEl.value.trim();
         
-        // Clear previous errors
-        document.querySelectorAll('.form-error').forEach(error => error.textContent = '');
-        
-        let hasErrors = false;
-        
-        if (!title) {
-            document.getElementById('title-error').textContent = 'Title is required';
-            hasErrors = true;
-        }
-        
-        if (!category) {
-            document.getElementById('category-error').textContent = 'Category is required';
-            hasErrors = true;
-        }
-        
-        if (!priority) {
-            document.getElementById('priority-error').textContent = 'Priority is required';
-            hasErrors = true;
-        }
-        
-        if (!description) {
-            document.getElementById('description-error').textContent = 'Description is required';
-            hasErrors = true;
-        }
-        
-        if (hasErrors) {
-            this.showToast('Please fix the errors below', 'error');
+        if (!title || !category || !priority || !description) {
+            this.showToast('Please fill in all required fields.', 'error');
             return;
         }
         
@@ -1498,20 +1181,19 @@ class ComplaintManagementApp {
             status: 1,
             submittedBy: this.currentUser.id,
             submittedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            resolutionTime: null
+            updatedAt: new Date().toISOString()
         };
         
         this.complaints.push(complaint);
         this.saveComplaints();
         
-        this.showToast(this.t('complaint_submitted'), 'success');
+        // Send notification to admin about new complaint
+        this.sendNewComplaintNotification(complaint);
+        
+        this.showToast('Complaint submitted successfully!', 'success');
         this.navigate('complaints');
         
-        // Add notification
-        this.addNotification('info', 'Complaint Submitted', `Your complaint ${complaint.id} has been submitted successfully`);
-        
-        // Simulate status updates for demo
+        // Simulate status updates
         setTimeout(() => {
             this.simulateStatusUpdates(complaint.id);
         }, 5000);
@@ -1521,28 +1203,27 @@ class ComplaintManagementApp {
         setTimeout(() => {
             if (this.complaints.find(c => c.id === complaintId)) {
                 this.updateComplaintStatus(complaintId, 2);
-                this.addNotification('info', 'Status Update', `Complaint ${complaintId} is now in progress`);
             }
-        }, 30000);
+        }, 15000);
         
         setTimeout(() => {
             if (this.complaints.find(c => c.id === complaintId)) {
                 this.updateComplaintStatus(complaintId, 3);
-                this.addNotification('success', 'Complaint Resolved', `Complaint ${complaintId} has been resolved`);
-                
-                // Show feedback modal after resolution
-                setTimeout(() => {
-                    this.showFeedbackModal(complaintId);
-                }, 2000);
             }
-        }, 120000);
+        }, 60000);
     }
     
     resetComplaintForm() {
         const form = document.getElementById('complaint-form');
         if (form) {
             form.reset();
-            document.querySelectorAll('.form-error').forEach(error => error.textContent = '');
+        }
+    }
+    
+    resetBroadcastForm() {
+        const form = document.getElementById('broadcast-form');
+        if (form) {
+            form.reset();
         }
     }
     
@@ -1557,17 +1238,15 @@ class ComplaintManagementApp {
         const status = this.statuses.find(s => s.id === complaint.status);
         
         // Update modal content
-        const elements = {
-            'modal-title': complaint.title,
-            'modal-id': complaint.id,
-            'modal-date': this.formatDate(complaint.submittedAt),
-            'modal-description': complaint.description
-        };
+        const modalTitle = document.getElementById('modal-title');
+        const modalId = document.getElementById('modal-id');
+        const modalDate = document.getElementById('modal-date');
+        const modalDescription = document.getElementById('modal-description');
         
-        Object.entries(elements).forEach(([id, value]) => {
-            const element = document.getElementById(id);
-            if (element) element.textContent = value;
-        });
+        if (modalTitle) modalTitle.textContent = complaint.title;
+        if (modalId) modalId.textContent = complaint.id;
+        if (modalDate) modalDate.textContent = this.formatDate(complaint.submittedAt);
+        if (modalDescription) modalDescription.textContent = complaint.description;
         
         // Update badges
         const modalCategory = document.getElementById('modal-category');
@@ -1575,67 +1254,24 @@ class ComplaintManagementApp {
         const modalStatus = document.getElementById('modal-status');
         
         if (modalCategory && category) {
-            const categoryName = this.currentLanguage === 'hi' ? category.nameHi : category.name;
-            modalCategory.innerHTML = `${category.icon} ${categoryName}`;
+            modalCategory.innerHTML = `${category.icon} ${category.name}`;
         }
         
         if (modalPriority && priority) {
-            const priorityName = this.currentLanguage === 'hi' ? priority.nameHi : priority.name;
             modalPriority.className = `badge priority-badge ${priority.name.toLowerCase()}`;
-            modalPriority.textContent = priorityName;
+            modalPriority.textContent = priority.name;
         }
         
         if (modalStatus && status) {
-            const statusName = this.currentLanguage === 'hi' ? status.nameHi : status.name;
             modalStatus.className = `badge status-badge ${status.name.toLowerCase().replace(' ', '-')}`;
-            modalStatus.textContent = statusName;
+            modalStatus.textContent = status.name;
         }
         
-        // Show feedback if exists
-        this.displayFeedback(complaint.id);
-        
-        // Update progress tracker
         this.updateProgressTracker(complaint.status);
         
-        // Show modal
         const modal = document.getElementById('complaint-modal');
         if (modal) {
             modal.classList.remove('hidden');
-            
-            // Focus management
-            const closeButton = modal.querySelector('.modal-close');
-            if (closeButton) {
-                closeButton.focus();
-            }
-        }
-    }
-    
-    displayFeedback(complaintId) {
-        const feedback = this.feedbacks.find(f => f.complaintId === complaintId);
-        const feedbackDisplay = document.getElementById('feedback-display');
-        
-        if (!feedbackDisplay) return;
-        
-        if (feedback) {
-            feedbackDisplay.classList.remove('hidden');
-            
-            const feedbackStars = document.getElementById('feedback-stars');
-            const feedbackRatingText = document.getElementById('feedback-rating-text');
-            const feedbackComment = document.getElementById('feedback-comment');
-            
-            if (feedbackStars) {
-                this.updateStarDisplay('feedback-stars', feedback.rating);
-            }
-            
-            if (feedbackRatingText) {
-                feedbackRatingText.textContent = `${feedback.rating}/5`;
-            }
-            
-            if (feedbackComment) {
-                feedbackComment.textContent = feedback.comment || 'No additional comments';
-            }
-        } else {
-            feedbackDisplay.classList.add('hidden');
         }
     }
     
@@ -1652,7 +1288,7 @@ class ComplaintManagementApp {
     }
     
     closeModal() {
-        const modals = document.querySelectorAll('.modal:not(.hidden)');
+        const modals = document.querySelectorAll('.modal');
         modals.forEach(modal => {
             modal.classList.add('hidden');
         });
@@ -1663,18 +1299,13 @@ class ComplaintManagementApp {
         const complaintIndex = this.complaints.findIndex(c => c.id === complaintId);
         if (complaintIndex === -1) return;
         
+        const oldStatus = this.complaints[complaintIndex].status;
         this.complaints[complaintIndex].status = newStatus;
         this.complaints[complaintIndex].updatedAt = new Date().toISOString();
-        
-        // Calculate resolution time if resolved
-        if (newStatus === 3 && !this.complaints[complaintIndex].resolutionTime) {
-            const submitted = new Date(this.complaints[complaintIndex].submittedAt);
-            const resolved = new Date();
-            const timeDiff = (resolved - submitted) / (1000 * 60 * 60); // hours
-            this.complaints[complaintIndex].resolutionTime = timeDiff;
-        }
-        
         this.saveComplaints();
+        
+        // Send status update notification
+        this.sendStatusUpdateNotification(this.complaints[complaintIndex], oldStatus, newStatus);
         
         // Update UI
         if (this.currentRoute === 'dashboard') {
@@ -1689,263 +1320,515 @@ class ComplaintManagementApp {
             const status = this.statuses.find(s => s.id === newStatus);
             const modalStatus = document.getElementById('modal-status');
             if (modalStatus && status) {
-                const statusName = this.currentLanguage === 'hi' ? status.nameHi : status.name;
                 modalStatus.className = `badge status-badge ${status.name.toLowerCase().replace(' ', '-')}`;
-                modalStatus.textContent = statusName;
+                modalStatus.textContent = status.name;
             }
             this.updateProgressTracker(newStatus);
         }
         
         const statusName = this.statuses.find(s => s.id === newStatus)?.name || 'Unknown';
         this.showToast(`Complaint ${complaintId} updated to: ${statusName}`, 'success');
-        
-        // Show feedback modal if resolved
-        if (newStatus === 3) {
-            setTimeout(() => {
-                this.showFeedbackModal(complaintId);
-            }, 1500);
-        }
     }
     
-    // Feedback System
-    showFeedbackModal(complaintId) {
-        // Check if feedback already exists
-        if (this.feedbacks.find(f => f.complaintId === complaintId)) {
-            return;
-        }
+    // Notification System Methods
+    loadNotifications() {
+        if (!this.currentUser) return;
         
-        this.currentFeedbackComplaint = complaintId;
+        // Load user-specific notifications
+        const userNotifications = this.notifications.filter(n => 
+            n.userId === this.currentUser.id || 
+            n.userId === 'all' || 
+            (n.userId === this.currentUser.role)
+        );
         
-        const modal = document.getElementById('feedback-modal');
-        if (modal) {
-            modal.classList.remove('hidden');
-            
-            // Reset form
-            this.resetFeedbackForm();
-            
-            // Focus management
-            const firstStar = modal.querySelector('.star[data-rating="1"]');
-            if (firstStar) {
-                firstStar.focus();
-            }
-        }
+        this.currentUserNotifications = userNotifications.sort((a, b) => 
+            new Date(b.timestamp) - new Date(a.timestamp)
+        );
     }
     
-    resetFeedbackForm() {
-        document.querySelectorAll('.star').forEach(star => {
-            star.classList.remove('active');
-        });
+    updateNotificationBadge() {
+        if (!this.currentUserNotifications) return;
         
-        const commentInput = document.getElementById('feedback-comment-input');
-        if (commentInput) {
-            commentInput.value = '';
-        }
-        
-        const ratingDisplay = document.getElementById('rating-display');
-        if (ratingDisplay) {
-            ratingDisplay.textContent = '';
-        }
-        
-        const submitBtn = document.getElementById('submit-feedback-btn');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-        }
-        
-        this.selectedRating = 0;
-    }
-    
-    selectRating(rating) {
-        this.selectedRating = rating;
-        
-        // Update visual feedback
-        document.querySelectorAll('.star').forEach((star, index) => {
-            if (index < rating) {
-                star.classList.add('active');
-            } else {
-                star.classList.remove('active');
-            }
-        });
-        
-        // Update rating text
-        const ratingDisplay = document.getElementById('rating-display');
-        if (ratingDisplay) {
-            const ratingTexts = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
-            ratingDisplay.textContent = `${rating}/5 - ${ratingTexts[rating]}`;
-        }
-        
-        // Enable submit button
-        const submitBtn = document.getElementById('submit-feedback-btn');
-        if (submitBtn) {
-            submitBtn.disabled = false;
-        }
-        
-        // Announce to screen readers
-        const announcement = `${rating} out of 5 stars selected`;
-        this.announceToScreenReader(announcement);
-    }
-    
-    submitFeedback() {
-        if (!this.selectedRating || !this.currentFeedbackComplaint) {
-            this.showToast('Please select a rating', 'error');
-            return;
-        }
-        
-        const commentInput = document.getElementById('feedback-comment-input');
-        const comment = commentInput ? commentInput.value.trim() : '';
-        
-        const feedback = {
-            complaintId: this.currentFeedbackComplaint,
-            rating: this.selectedRating,
-            comment: comment,
-            submittedAt: new Date().toISOString(),
-            submittedBy: this.currentUser.id
-        };
-        
-        this.feedbacks.push(feedback);
-        this.saveFeedbacks();
-        
-        this.showToast('Thank you for your feedback!', 'success');
-        this.closeFeedbackModal();
-        
-        // Add notification
-        this.addNotification('success', 'Feedback Submitted', 'Your feedback has been recorded successfully');
-    }
-    
-    closeFeedbackModal() {
-        const modal = document.getElementById('feedback-modal');
-        if (modal) {
-            modal.classList.add('hidden');
-        }
-        this.currentFeedbackComplaint = null;
-        this.selectedRating = 0;
-    }
-    
-    // Notifications System
-    addNotification(type, title, message) {
-        const notification = {
-            id: 'not' + Date.now(),
-            type,
-            title,
-            message,
-            timestamp: new Date().toISOString(),
-            read: false
-        };
-        
-        this.notifications.unshift(notification);
-        this.updateNotificationCount();
-        
-        // Keep only last 20 notifications
-        if (this.notifications.length > 20) {
-            this.notifications = this.notifications.slice(0, 20);
-        }
-    }
-    
-    updateNotificationCount() {
-        const unreadCount = this.notifications.filter(n => !n.read).length;
+        const unreadCount = this.currentUserNotifications.filter(n => !n.isRead).length;
         const badge = document.getElementById('notification-count');
+        
         if (badge) {
             badge.textContent = unreadCount;
-            badge.style.display = unreadCount > 0 ? 'inline' : 'none';
+            if (unreadCount > 0) {
+                badge.classList.remove('hidden');
+                badge.classList.add('pulse');
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('pulse');
+            }
         }
     }
     
-    showNotifications() {
-        const modal = document.getElementById('notifications-modal');
-        const list = document.getElementById('notifications-list');
+    toggleNotificationDropdown() {
+        const dropdown = document.getElementById('notification-dropdown');
+        if (!dropdown) return;
         
-        if (!modal || !list) return;
-        
-        list.innerHTML = '';
-        
-        if (this.notifications.length === 0) {
-            list.innerHTML = '<p style="text-align: center; color: var(--color-text-secondary);">No notifications</p>';
+        if (dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
         } else {
-            this.notifications.forEach(notification => {
-                const item = document.createElement('div');
-                item.className = `notification-item ${notification.read ? 'read' : 'unread'}`;
-                item.innerHTML = `
-                    <div class="notification-header">
-                        <h4>${this.escapeHtml(notification.title)}</h4>
-                        <span class="notification-time">${this.formatDate(notification.timestamp)}</span>
-                    </div>
-                    <p>${this.escapeHtml(notification.message)}</p>
-                `;
-                
-                item.addEventListener('click', () => {
-                    notification.read = true;
-                    this.updateNotificationCount();
-                    item.classList.add('read');
-                    item.classList.remove('unread');
-                });
-                
-                list.appendChild(item);
-            });
+            this.renderNotificationDropdown();
+            dropdown.classList.add('show');
+        }
+    }
+    
+    renderNotificationDropdown() {
+        const container = document.getElementById('notification-list');
+        if (!container || !this.currentUserNotifications) return;
+        
+        container.innerHTML = '';
+        
+        const recentNotifications = this.currentUserNotifications.slice(0, 5);
+        
+        if (recentNotifications.length === 0) {
+            container.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--theme-text-secondary);">No notifications</p>';
+            return;
         }
         
-        modal.classList.remove('hidden');
+        recentNotifications.forEach(notification => {
+            const item = this.createNotificationItem(notification, true);
+            container.appendChild(item);
+        });
+    }
+    
+    createNotificationItem(notification, isDropdown = false) {
+        const notificationType = this.notificationTypes.find(t => t.id === notification.type);
+        const item = document.createElement('div');
+        item.className = `notification-item ${!notification.isRead ? 'unread' : ''}`;
+        item.setAttribute('data-notification-id', notification.id);
         
-        // Mark all as read after viewing
+        item.innerHTML = `
+            <div class="notification-content">
+                <div class="notification-type">
+                    <span class="notification-type-icon">${notificationType ? notificationType.icon : '📬'}</span>
+                    <span class="notification-type-text ${notificationType ? notificationType.color : 'text-gray-400'}">${notificationType ? notificationType.name : 'Notification'}</span>
+                </div>
+                <div class="notification-title">${this.escapeHtml(notification.title)}</div>
+                <div class="notification-message">${this.escapeHtml(notification.message)}</div>
+                <div class="notification-time">${this.formatRelativeTime(notification.timestamp)}</div>
+            </div>
+        `;
+        
+        return item;
+    }
+    
+    handleNotificationClick(notificationId) {
+        const notification = this.currentUserNotifications.find(n => n.id === notificationId);
+        if (!notification) return;
+        
+        // Mark as read
+        this.markNotificationAsRead(notificationId);
+        
+        // Handle different notification types
+        if (notification.relatedComplaint) {
+            // Close dropdown and show complaint
+            const dropdown = document.getElementById('notification-dropdown');
+            if (dropdown) dropdown.classList.remove('show');
+            
+            this.navigate('complaints');
+            setTimeout(() => {
+                this.showComplaintModal(notification.relatedComplaint);
+            }, 100);
+        }
+    }
+    
+    markNotificationAsRead(notificationId) {
+        const notificationIndex = this.notifications.findIndex(n => n.id === notificationId);
+        if (notificationIndex !== -1) {
+            this.notifications[notificationIndex].isRead = true;
+            this.saveNotifications();
+            
+            // Update current user notifications
+            const userNotificationIndex = this.currentUserNotifications.findIndex(n => n.id === notificationId);
+            if (userNotificationIndex !== -1) {
+                this.currentUserNotifications[userNotificationIndex].isRead = true;
+            }
+            
+            this.updateNotificationBadge();
+            this.renderNotificationDropdown();
+        }
+    }
+    
+    markAllNotificationsAsRead() {
+        this.currentUserNotifications.forEach(notification => {
+            if (!notification.isRead) {
+                this.markNotificationAsRead(notification.id);
+            }
+        });
+        
+        this.showToast('All notifications marked as read', 'success');
+    }
+    
+    sendNotification(notification) {
+        notification.id = 'NOT' + Date.now();
+        notification.timestamp = new Date().toISOString();
+        
+        this.notifications.push(notification);
+        this.saveNotifications();
+        
+        // If notification is for current user, update UI
+        if (notification.userId === this.currentUser.id || 
+            notification.userId === 'all' || 
+            notification.userId === this.currentUser.role) {
+            
+            this.loadNotifications();
+            this.updateNotificationBadge();
+            
+            // Show toast
+            this.showToast(notification.title, 'info');
+            
+            // Play sound and shake bell
+            this.notificationSound.play();
+            this.animateNotificationBell();
+            
+            // Send push notification
+            this.sendPushNotification(notification);
+            
+            // Simulate email/SMS notifications
+            this.simulateEmailNotification(notification);
+            this.simulateSMSNotification(notification);
+        }
+    }
+    
+    sendStatusUpdateNotification(complaint, oldStatus, newStatus) {
+        const oldStatusName = this.statuses.find(s => s.id === oldStatus)?.name || 'Unknown';
+        const newStatusName = this.statuses.find(s => s.id === newStatus)?.name || 'Unknown';
+        
+        const notification = {
+            type: 1, // Status Update
+            title: 'Complaint Status Updated',
+            message: `Your complaint #${complaint.id} (${complaint.title}) status has been updated from ${oldStatusName} to ${newStatusName}`,
+            userId: complaint.submittedBy,
+            isRead: false,
+            relatedComplaint: complaint.id
+        };
+        
+        this.sendNotification(notification);
+    }
+    
+    sendNewComplaintNotification(complaint) {
+        const notification = {
+            type: 3, // System Alert
+            title: 'New Complaint Submitted',
+            message: `A new complaint #${complaint.id} (${complaint.title}) has been submitted and requires attention`,
+            userId: 'Admin', // Send to all admins
+            isRead: false,
+            relatedComplaint: complaint.id
+        };
+        
+        this.sendNotification(notification);
+    }
+    
+    sendWelcomeNotification() {
+        const notification = {
+            type: 4, // Welcome
+            title: 'Welcome to the Portal',
+            message: `Welcome ${this.currentUser.name}! You can now submit and track your complaints easily through this portal.`,
+            userId: this.currentUser.id,
+            isRead: false
+        };
+        
+        this.sendNotification(notification);
+    }
+    
+    hasWelcomeNotification() {
+        return this.notifications.some(n => 
+            n.type === 4 && 
+            n.userId === this.currentUser.id
+        );
+    }
+    
+    animateNotificationBell() {
+        const bell = document.getElementById('notification-bell');
+        if (bell) {
+            bell.classList.add('shake');
+            setTimeout(() => {
+                bell.classList.remove('shake');
+            }, 500);
+        }
+    }
+    
+    sendPushNotification(notification) {
+        if (!this.notificationPreferences.push) return;
+        
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+                new Notification(notification.title, {
+                    body: notification.message,
+                    icon: '/favicon.ico',
+                    tag: notification.id
+                });
+            } catch (e) {
+                console.warn('Could not send push notification:', e);
+            }
+        }
+    }
+    
+    simulateEmailNotification(notification) {
+        if (!this.notificationPreferences.email) return;
+        
         setTimeout(() => {
-            this.notifications.forEach(n => n.read = true);
-            this.updateNotificationCount();
+            this.showEmailPreview(notification);
+        }, 1000);
+    }
+    
+    simulateSMSNotification(notification) {
+        if (!this.notificationPreferences.sms) return;
+        
+        setTimeout(() => {
+            this.showSMSPreview(notification);
         }, 2000);
     }
     
-    closeNotificationsModal() {
-        const modal = document.getElementById('notifications-modal');
+    showEmailPreview(notification) {
+        const modal = document.getElementById('email-modal');
+        if (!modal) return;
+        
+        document.getElementById('email-to').textContent = this.currentUser.email;
+        document.getElementById('email-subject').textContent = `[College Portal] ${notification.title}`;
+        document.getElementById('email-content').innerHTML = `
+            <h3>${notification.title}</h3>
+            <p>Dear ${this.currentUser.name},</p>
+            <p>${notification.message}</p>
+            <p>You can view more details by logging into the College Portal.</p>
+            <p>Best regards,<br>College Administration</p>
+        `;
+        
+        modal.classList.remove('hidden');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 5000);
+    }
+    
+    showSMSPreview(notification) {
+        const modal = document.getElementById('sms-modal');
+        if (!modal) return;
+        
+        document.getElementById('sms-content').textContent = `College Portal: ${notification.message.substring(0, 160)}`;
+        
+        modal.classList.remove('hidden');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 4000);
+    }
+    
+    // Broadcast System
+    handleBroadcastSubmit(e) {
+        e.preventDefault();
+        
+        const titleEl = document.getElementById('broadcast-title');
+        const audienceEl = document.getElementById('broadcast-audience');
+        const priorityEl = document.getElementById('broadcast-priority');
+        const messageEl = document.getElementById('broadcast-message');
+        
+        if (!titleEl || !audienceEl || !priorityEl || !messageEl) {
+            this.showToast('Form error. Please refresh and try again.', 'error');
+            return;
+        }
+        
+        const title = titleEl.value.trim();
+        const audience = audienceEl.value;
+        const priority = priorityEl.value;
+        const message = messageEl.value.trim();
+        
+        if (!title || !audience || !priority || !message) {
+            this.showToast('Please fill in all required fields.', 'error');
+            return;
+        }
+        
+        this.sendBroadcastNotification({ title, audience, priority, message });
+    }
+    
+    previewBroadcast() {
+        const titleEl = document.getElementById('broadcast-title');
+        const audienceEl = document.getElementById('broadcast-audience');
+        const priorityEl = document.getElementById('broadcast-priority');
+        const messageEl = document.getElementById('broadcast-message');
+        
+        if (!titleEl.value || !audienceEl.value || !priorityEl.value || !messageEl.value) {
+            this.showToast('Please fill in all fields before preview.', 'error');
+            return;
+        }
+        
+        document.getElementById('preview-title').textContent = titleEl.value;
+        document.getElementById('preview-audience').textContent = audienceEl.value === 'all' ? 'All Users' : audienceEl.value + ' Only';
+        document.getElementById('preview-priority').textContent = priorityEl.value;
+        document.getElementById('preview-message').textContent = messageEl.value;
+        
+        const modal = document.getElementById('broadcast-preview-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
+    
+    sendBroadcast() {
+        const titleEl = document.getElementById('broadcast-title');
+        const audienceEl = document.getElementById('broadcast-audience');
+        const priorityEl = document.getElementById('broadcast-priority');
+        const messageEl = document.getElementById('broadcast-message');
+        
+        const broadcastData = {
+            title: titleEl.value,
+            audience: audienceEl.value,
+            priority: priorityEl.value,
+            message: messageEl.value
+        };
+        
+        this.sendBroadcastNotification(broadcastData);
+        
+        // Close preview modal
+        const modal = document.getElementById('broadcast-preview-modal');
         if (modal) {
             modal.classList.add('hidden');
         }
     }
     
-    // Export functionality
-    exportAnalytics() {
-        const data = {
-            complaints: this.complaints,
-            feedbacks: this.feedbacks,
-            statistics: {
-                totalComplaints: this.complaints.length,
-                resolvedComplaints: this.complaints.filter(c => c.status === 3).length,
-                averageRating: this.calculateAverageRating(),
-                averageResolutionTime: this.calculateAverageResolutionTime()
-            },
-            exportedAt: new Date().toISOString(),
-            exportedBy: this.currentUser.name
+    sendBroadcastNotification(broadcastData) {
+        const notification = {
+            type: 2, // Broadcast
+            title: broadcastData.title,
+            message: broadcastData.message,
+            userId: broadcastData.audience,
+            isRead: false,
+            priority: broadcastData.priority
         };
         
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `analytics-report-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        this.sendNotification(notification);
         
-        this.showToast('Analytics report exported successfully!', 'success');
+        this.showToast(`Broadcast sent to ${broadcastData.audience === 'all' ? 'all users' : broadcastData.audience}!`, 'success');
+        this.resetBroadcastForm();
     }
     
-    calculateAverageRating() {
-        if (this.feedbacks.length === 0) return 0;
-        const total = this.feedbacks.reduce((sum, f) => sum + f.rating, 0);
-        return (total / this.feedbacks.length).toFixed(1);
+    populateBroadcastTemplate(templateId) {
+        if (!templateId) return;
+        
+        const template = this.broadcastTemplates.find(t => t.id === parseInt(templateId));
+        if (!template) return;
+        
+        const titleEl = document.getElementById('broadcast-title');
+        const messageEl = document.getElementById('broadcast-message');
+        
+        if (titleEl) titleEl.value = template.title;
+        if (messageEl) messageEl.value = template.template;
     }
     
-    calculateAverageResolutionTime() {
-        const resolvedComplaints = this.complaints.filter(c => c.status === 3 && c.resolutionTime);
-        if (resolvedComplaints.length === 0) return 0;
-        const total = resolvedComplaints.reduce((sum, c) => sum + c.resolutionTime, 0);
-        return (total / resolvedComplaints.length / 24).toFixed(1); // Convert to days
+    // Notification Pages
+    loadNotificationsPage() {
+        this.renderNotificationsList('all');
     }
     
-    // Utility functions
+    switchNotificationTab(tab) {
+        // Update tab active state
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+        
+        this.renderNotificationsList(tab);
+    }
+    
+    renderNotificationsList(filter) {
+        const container = document.getElementById('notifications-container');
+        if (!container || !this.currentUserNotifications) return;
+        
+        let filteredNotifications = [...this.currentUserNotifications];
+        
+        switch (filter) {
+            case 'unread':
+                filteredNotifications = filteredNotifications.filter(n => !n.isRead);
+                break;
+            case 'status':
+                filteredNotifications = filteredNotifications.filter(n => n.type === 1);
+                break;
+            case 'broadcast':
+                filteredNotifications = filteredNotifications.filter(n => n.type === 2);
+                break;
+        }
+        
+        container.innerHTML = '';
+        
+        if (filteredNotifications.length === 0) {
+            container.innerHTML = '<p style="padding: 2rem; text-align: center; color: var(--theme-text-secondary);">No notifications found.</p>';
+            return;
+        }
+        
+        filteredNotifications.forEach(notification => {
+            const item = this.createNotificationItem(notification);
+            container.appendChild(item);
+        });
+    }
+    
+    loadNotificationSettings() {
+        const emailCheckbox = document.getElementById('email-notifications');
+        const smsCheckbox = document.getElementById('sms-notifications');
+        const pushCheckbox = document.getElementById('push-notifications');
+        const soundCheckbox = document.getElementById('sound-notifications');
+        
+        if (emailCheckbox) emailCheckbox.checked = this.notificationPreferences.email;
+        if (smsCheckbox) smsCheckbox.checked = this.notificationPreferences.sms;
+        if (pushCheckbox) pushCheckbox.checked = this.notificationPreferences.push;
+        if (soundCheckbox) soundCheckbox.checked = this.notificationPreferences.sound;
+    }
+    
+    saveSettings() {
+        const emailCheckbox = document.getElementById('email-notifications');
+        const smsCheckbox = document.getElementById('sms-notifications');
+        const pushCheckbox = document.getElementById('push-notifications');
+        const soundCheckbox = document.getElementById('sound-notifications');
+        
+        this.notificationPreferences = {
+            email: emailCheckbox ? emailCheckbox.checked : true,
+            sms: smsCheckbox ? smsCheckbox.checked : true,
+            push: pushCheckbox ? pushCheckbox.checked : true,
+            sound: soundCheckbox ? soundCheckbox.checked : true
+        };
+        
+        this.saveNotificationPreferences();
+        this.showToast('Settings saved successfully!', 'success');
+    }
+    
+    testNotifications() {
+        const testNotification = {
+            type: 3,
+            title: 'Test Notification',
+            message: 'This is a test notification to verify your settings are working correctly.',
+            userId: this.currentUser.id,
+            isRead: false
+        };
+        
+        this.sendNotification(testNotification);
+        this.showToast('Test notification sent!', 'info');
+    }
+    
     formatDate(dateString) {
         try {
             const date = new Date(dateString);
-            return date.toLocaleDateString(this.currentLanguage === 'hi' ? 'hi-IN' : 'en-US') + 
-                   ' ' + date.toLocaleTimeString(this.currentLanguage === 'hi' ? 'hi-IN' : 'en-US', 
-                   {hour: '2-digit', minute:'2-digit'});
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        } catch (e) {
+            return 'Invalid date';
+        }
+    }
+    
+    formatRelativeTime(dateString) {
+        try {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
         } catch (e) {
             return 'Invalid date';
         }
@@ -1962,44 +1845,42 @@ class ComplaintManagementApp {
         return text.replace(/[&<>"']/g, m => map[m]);
     }
     
-    announceToScreenReader(message) {
-        const announcement = document.createElement('div');
-        announcement.setAttribute('aria-live', 'polite');
-        announcement.setAttribute('aria-atomic', 'true');
-        announcement.className = 'sr-only';
-        announcement.textContent = message;
-        document.body.appendChild(announcement);
-        
-        setTimeout(() => {
-            document.body.removeChild(announcement);
-        }, 1000);
-    }
-    
     showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
-        toast.textContent = message;
-        toast.setAttribute('role', 'status');
-        toast.setAttribute('aria-live', 'polite');
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'toast-close';
+        closeBtn.innerHTML = '×';
+        closeBtn.onclick = () => this.removeToast(toast);
+        
+        toast.innerHTML = `${message}`;
+        toast.appendChild(closeBtn);
         
         const container = document.getElementById('toast-container');
         if (container) {
             container.appendChild(toast);
             
-            // Remove toast after 4 seconds
+            // Auto remove toast after 4 seconds
+            setTimeout(() => {
+                this.removeToast(toast);
+            }, 4000);
+        }
+    }
+    
+    removeToast(toast) {
+        if (toast && toast.parentNode) {
+            toast.classList.add('removing');
             setTimeout(() => {
                 if (toast.parentNode) {
                     toast.remove();
                 }
-            }, 4000);
-        } else {
-            // Fallback to alert
-            alert(message);
+            }, 300);
         }
     }
 }
 
-// Initialize the enhanced application
+// Initialize the application
 let app;
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
@@ -2009,53 +1890,43 @@ if (document.readyState === 'loading') {
     app = new ComplaintManagementApp();
 }
 
-// Additional accessibility and error handling
+// Additional utility functions
 document.addEventListener('keydown', (e) => {
-    // Global keyboard shortcuts
     if (e.key === 'Escape') {
-        // Close any open modals
-        document.querySelectorAll('.modal:not(.hidden)').forEach(modal => {
+        const modals = document.querySelectorAll('.modal:not(.hidden)');
+        modals.forEach(modal => {
             modal.classList.add('hidden');
         });
         
-        // Close accessibility dropdown
-        const dropdown = document.getElementById('accessibility-dropdown');
-        const toggle = document.getElementById('accessibility-toggle');
-        if (dropdown && toggle) {
-            dropdown.classList.remove('active');
-            toggle.setAttribute('aria-expanded', 'false');
+        const dropdown = document.getElementById('notification-dropdown');
+        if (dropdown && dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
+        }
+        
+        if (app) {
+            app.currentComplaint = null;
         }
     }
 });
 
-// Form validation enhancement
+// Form validation
 document.addEventListener('blur', (e) => {
     if (e.target.classList.contains('form-control') && e.target.hasAttribute('required')) {
-        const errorId = e.target.getAttribute('aria-describedby');
-        const errorEl = errorId ? document.getElementById(errorId) : null;
-        
         if (!e.target.value.trim()) {
-            e.target.style.borderColor = 'var(--color-red-400)';
-            if (errorEl) {
-                errorEl.textContent = 'This field is required';
-            }
+            e.target.style.borderColor = 'var(--theme-danger)';
         } else {
-            e.target.style.borderColor = 'var(--color-teal-300)';
-            if (errorEl) {
-                errorEl.textContent = '';
-            }
+            e.target.style.borderColor = 'var(--theme-success)';
         }
     }
 }, true);
 
-// Reset border colors on focus
 document.addEventListener('focus', (e) => {
     if (e.target.classList.contains('form-control')) {
         e.target.style.borderColor = '';
     }
 }, true);
 
-// Enhanced error boundary
+// Error boundary
 window.addEventListener('error', (e) => {
     console.error('Application error:', e.error);
     if (app) {
@@ -2068,15 +1939,7 @@ if ('performance' in window) {
     window.addEventListener('load', () => {
         setTimeout(() => {
             const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
-            console.log(`Enhanced app loaded in ${loadTime}ms`);
+            console.log(`App loaded in ${loadTime}ms`);
         }, 0);
-    });
-}
-
-// Service Worker registration for PWA features
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        console.log('Service Worker support detected');
-        // Service worker would be registered here in a full implementation
     });
 }
