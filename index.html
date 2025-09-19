@@ -12,39 +12,45 @@
         <!-- Loading Screen -->
         <div id="loading" class="loading-screen">
             <div class="loading-spinner"></div>
-            <p>Loading...</p>
+            <p id="loading-text">Loading...</p>
         </div>
+
+        <!-- Accessibility Skip Links -->
+        <a href="#main-content" class="skip-link" id="skip-link">Skip to main content</a>
 
         <!-- Login Page -->
         <div id="login-page" class="page hidden">
             <div class="login-container">
                 <div class="login-card">
                     <div class="login-header">
-                        <h1>College Portal</h1>
-                        <p>Complaint Management System</p>
+                        <h1 id="login-title">College Portal</h1>
+                        <p id="login-subtitle">Complaint Management System</p>
                     </div>
                     <form id="login-form">
                         <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
+                            <label for="email" id="email-label">Email</label>
+                            <input type="email" id="email" class="form-control" placeholder="Enter your email" required aria-describedby="email-error">
+                            <span id="email-error" class="form-error" role="alert"></span>
                         </div>
                         <div class="form-group">
-                            <label for="password">Password</label>
-                            <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+                            <label for="password" id="password-label">Password</label>
+                            <input type="password" id="password" class="form-control" placeholder="Enter password" required aria-describedby="password-error">
+                            <span id="password-error" class="form-error" role="alert"></span>
                         </div>
                         <div class="form-group">
-                            <label for="role">Role</label>
-                            <select id="role" class="form-control" required>
-                                <option value="">Select Role</option>
-                                <option value="Student">Student</option>
-                                <option value="Staff">Staff</option>
-                                <option value="Admin">Admin</option>
+                            <label for="role" id="role-label">Role</label>
+                            <select id="role" class="form-control" required aria-describedby="role-error">
+                                <option value="" id="select-role-option">Select Role</option>
+                                <option value="Student" id="student-option">Student</option>
+                                <option value="Staff" id="staff-option">Staff</option>
+                                <option value="Admin" id="admin-option">Admin</option>
                             </select>
+                            <span id="role-error" class="form-error" role="alert"></span>
                         </div>
-                        <button type="submit" class="btn btn--primary btn--full-width">Login</button>
+                        <button type="submit" class="btn btn--primary btn--full-width" id="login-btn">Login</button>
                     </form>
                     <div class="demo-credentials">
-                        <p><strong>Demo Credentials:</strong></p>
+                        <p><strong id="demo-creds-title">Demo Credentials:</strong></p>
                         <p>Student: student@college.edu / demo123</p>
                         <p>Staff: staff@college.edu / demo123</p>
                         <p>Admin: admin@college.edu / demo123</p>
@@ -56,338 +62,421 @@
         <!-- Main App -->
         <div id="main-app" class="hidden">
             <!-- Navigation -->
-            <nav class="navbar">
+            <nav class="navbar" role="navigation" aria-label="Main navigation">
                 <div class="nav-brand">
-                    <span class="nav-logo">🎓</span>
-                    <span class="nav-title">College Portal</span>
+                    <span class="nav-logo" role="img" aria-label="College logo">🎓</span>
+                    <span class="nav-title" id="nav-title">College Portal</span>
                 </div>
-                <div class="nav-links">
-                    <a href="#" class="nav-link" data-route="dashboard">Dashboard</a>
-                    <a href="#" class="nav-link" data-route="complaints">Complaints</a>
-                    <a href="#" class="nav-link student-only" data-route="submit">Submit</a>
-                    <a href="#" class="nav-link admin-only" data-route="analytics">Analytics</a>
-                    <a href="#" class="nav-link" data-route="profile">Profile</a>
+                
+                <!-- Mobile Navigation Toggle -->
+                <button class="nav-mobile-toggle" id="nav-mobile-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                
+                <div class="nav-links" id="nav-links">
+                    <a href="#" class="nav-link" data-route="dashboard" id="nav-dashboard">
+                        <span class="nav-icon">📊</span>
+                        <span id="nav-dashboard-text">Dashboard</span>
+                    </a>
+                    <a href="#" class="nav-link" data-route="complaints" id="nav-complaints">
+                        <span class="nav-icon">📝</span>
+                        <span id="nav-complaints-text">Complaints</span>
+                    </a>
+                    <a href="#" class="nav-link student-only" data-route="submit" id="nav-submit">
+                        <span class="nav-icon">➕</span>
+                        <span id="nav-submit-text">Submit</span>
+                    </a>
+                    <a href="#" class="nav-link admin-only" data-route="analytics" id="nav-analytics">
+                        <span class="nav-icon">📈</span>
+                        <span id="nav-analytics-text">Analytics</span>
+                    </a>
+                    <a href="#" class="nav-link" data-route="profile" id="nav-profile">
+                        <span class="nav-icon">👤</span>
+                        <span id="nav-profile-text">Profile</span>
+                    </a>
                 </div>
-                <div class="nav-user">
-                    <span id="user-name">User</span>
-                    <span class="user-role" id="user-role">Student</span>
-                    <button class="btn btn--sm btn--outline" id="logout-btn">Logout</button>
+                
+                <div class="nav-controls">
+                    <!-- Language Switcher -->
+                    <div class="language-switcher" aria-label="Language selection">
+                        <select id="language-select" class="form-control form-control--sm" aria-label="Select language">
+                            <option value="en" data-flag="🇺🇸">English</option>
+                            <option value="hi" data-flag="🇮🇳">हिंदी</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Accessibility Menu -->
+                    <div class="accessibility-menu">
+                        <button class="btn btn--sm btn--outline accessibility-toggle" id="accessibility-toggle" aria-label="Accessibility options" aria-expanded="false">
+                            <span aria-hidden="true">♿</span>
+                        </button>
+                        <div class="accessibility-dropdown" id="accessibility-dropdown">
+                            <div class="accessibility-option">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="high-contrast-toggle" aria-describedby="high-contrast-desc">
+                                    <span class="toggle-slider"></span>
+                                    <span id="high-contrast-label">High Contrast</span>
+                                </label>
+                                <p id="high-contrast-desc" class="accessibility-desc">Increases color contrast for better visibility</p>
+                            </div>
+                            <div class="accessibility-option">
+                                <label for="font-size-control" id="font-size-label">Text Size</label>
+                                <select id="font-size-control" class="form-control form-control--sm" aria-describedby="font-size-desc">
+                                    <option value="normal">Normal</option>
+                                    <option value="large">Large (120%)</option>
+                                    <option value="larger">Larger (150%)</option>
+                                </select>
+                                <p id="font-size-desc" class="accessibility-desc">Adjust text size for better readability</p>
+                            </div>
+                            <div class="accessibility-shortcuts">
+                                <h4 id="shortcuts-title">Keyboard Shortcuts</h4>
+                                <ul role="list">
+                                    <li><kbd>Alt+D</kbd> <span id="shortcut-dashboard">Dashboard</span></li>
+                                    <li><kbd>Alt+C</kbd> <span id="shortcut-complaints">Complaints</span></li>
+                                    <li><kbd>Alt+N</kbd> <span id="shortcut-notifications">Notifications</span></li>
+                                    <li><kbd>Esc</kbd> <span id="shortcut-close">Close Modal</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="nav-user">
+                        <span id="user-name">User</span>
+                        <span class="user-role" id="user-role">Student</span>
+                        <button class="btn btn--sm btn--outline" id="logout-btn">
+                            <span id="logout-text">Logout</span>
+                        </button>
+                    </div>
                 </div>
             </nav>
 
-            <!-- Dashboard Page -->
-            <div id="dashboard-page" class="page">
-                <div class="container">
-                    <div class="page-header">
-                        <h1>Dashboard</h1>
-                        <p>Welcome to your complaint management dashboard</p>
-                    </div>
-                    
-                    <!-- Statistics Cards -->
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-icon">📝</div>
-                            <div class="stat-content">
-                                <h3 id="total-complaints">0</h3>
-                                <p>Total Complaints</p>
+            <!-- Main Content Area -->
+            <main id="main-content" role="main">
+                <!-- Dashboard Page -->
+                <div id="dashboard-page" class="page">
+                    <div class="container">
+                        <div class="page-header">
+                            <div>
+                                <h1 id="dashboard-title">Dashboard</h1>
+                                <p id="dashboard-subtitle">Welcome to your complaint management dashboard</p>
                             </div>
+                            <button class="btn btn--primary" id="notifications-btn" aria-label="View notifications">
+                                <span aria-hidden="true">🔔</span>
+                                <span id="notifications-text">Notifications</span>
+                                <span class="notification-badge" id="notification-count">0</span>
+                            </button>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">⏳</div>
-                            <div class="stat-content">
-                                <h3 id="pending-complaints">0</h3>
-                                <p>Pending</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">🔄</div>
-                            <div class="stat-content">
-                                <h3 id="progress-complaints">0</h3>
-                                <p>In Progress</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">✅</div>
-                            <div class="stat-content">
-                                <h3 id="resolved-complaints">0</h3>
-                                <p>Resolved</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Analytics for Non-Admin Users -->
-                    <div class="section-card student-only staff-only">
-                        <div class="section-header">
-                            <h2>Quick Analytics</h2>
-                        </div>
-                        <div class="quick-analytics">
-                            <div class="chart-container" style="position: relative; height: 300px;">
-                                <canvas id="quick-chart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Complaints -->
-                    <div class="section-card">
-                        <div class="section-header">
-                            <h2>Recent Complaints</h2>
-                            <button class="btn btn--sm btn--primary" data-route="complaints">View All</button>
-                        </div>
-                        <div id="recent-complaints" class="complaints-list">
-                            <!-- Recent complaints will be populated here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Analytics Page -->
-            <div id="analytics-page" class="page hidden">
-                <div class="container">
-                    <div class="page-header">
-                        <h1>Analytics Dashboard</h1>
-                        <div class="page-actions">
-                            <button class="btn btn--outline btn--sm" id="export-analytics">📊 Export Report</button>
-                            <select id="analytics-period" class="form-control" style="width: auto; display: inline-block;">
-                                <option value="6">Last 6 Months</option>
-                                <option value="3">Last 3 Months</option>
-                                <option value="1">Last Month</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Key Metrics Cards -->
-                    <div class="analytics-metrics">
-                        <div class="metric-card">
-                            <div class="metric-icon">📈</div>
-                            <div class="metric-content">
-                                <h3 id="total-submissions">140</h3>
-                                <p>Total Submissions</p>
-                                <span class="metric-change positive">+12% from last period</span>
-                            </div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-icon">⚡</div>
-                            <div class="metric-content">
-                                <h3 id="avg-resolution-time">42.3h</h3>
-                                <p>Avg Resolution Time</p>
-                                <span class="metric-change negative">+5% from last period</span>
-                            </div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-icon">✨</div>
-                            <div class="metric-content">
-                                <h3 id="resolution-rate">84%</h3>
-                                <p>Resolution Rate</p>
-                                <span class="metric-change positive">+3% from last period</span>
-                            </div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-icon">⭐</div>
-                            <div class="metric-content">
-                                <h3 id="satisfaction-score">4.2</h3>
-                                <p>Satisfaction Score</p>
-                                <span class="metric-change positive">+0.1 from last period</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Charts Grid -->
-                    <div class="charts-grid">
-                        <!-- Monthly Trends Chart -->
-                        <div class="chart-card">
-                            <div class="chart-header">
-                                <h3>Monthly Complaint Trends</h3>
-                                <p>Submitted vs Resolved complaints over time</p>
-                            </div>
-                            <div class="chart-container" style="position: relative; height: 350px;">
-                                <canvas id="monthly-trends-chart"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Status Distribution -->
-                        <div class="chart-card">
-                            <div class="chart-header">
-                                <h3>Status Distribution</h3>
-                                <p>Current complaint status breakdown</p>
-                            </div>
-                            <div class="chart-container" style="position: relative; height: 350px;">
-                                <canvas id="status-chart"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Category Breakdown -->
-                        <div class="chart-card">
-                            <div class="chart-header">
-                                <h3>Category Breakdown</h3>
-                                <p>Complaints by category with resolution times</p>
-                            </div>
-                            <div class="chart-container" style="position: relative; height: 350px;">
-                                <canvas id="category-chart"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Priority Distribution -->
-                        <div class="chart-card">
-                            <div class="chart-header">
-                                <h3>Priority Distribution</h3>
-                                <p>Breakdown of complaint priorities</p>
-                            </div>
-                            <div class="chart-container" style="position: relative; height: 350px;">
-                                <canvas id="priority-chart"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Department Performance -->
-                        <div class="chart-card full-width">
-                            <div class="chart-header">
-                                <h3>Department Performance</h3>
-                                <p>Efficiency and response times by department</p>
-                            </div>
-                            <div class="chart-container" style="position: relative; height: 400px;">
-                                <canvas id="department-chart"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Resolution Time Analysis -->
-                        <div class="chart-card full-width">
-                            <div class="chart-header">
-                                <h3>Resolution Time Analysis</h3>
-                                <p>Average resolution times by priority and category</p>
-                            </div>
-                            <div class="chart-container" style="position: relative; height: 350px;">
-                                <canvas id="resolution-time-chart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Complaints Page -->
-            <div id="complaints-page" class="page hidden">
-                <div class="container">
-                    <div class="page-header">
-                        <h1>Complaint Management</h1>
-                        <div class="page-actions">
-                            <button class="btn btn--primary student-only" data-route="submit">New Complaint</button>
-                        </div>
-                    </div>
-
-                    <!-- Filters -->
-                    <div class="filters-card">
-                        <div class="filters-grid">
-                            <div class="filter-group">
-                                <label>Category</label>
-                                <select id="category-filter" class="form-control">
-                                    <option value="">All Categories</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label>Priority</label>
-                                <select id="priority-filter" class="form-control">
-                                    <option value="">All Priorities</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label>Status</label>
-                                <select id="status-filter" class="form-control">
-                                    <option value="">All Status</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label>Search</label>
-                                <input type="text" id="search-filter" class="form-control" placeholder="Search complaints...">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Complaints List -->
-                    <div id="complaints-list" class="complaints-grid">
-                        <!-- Complaints will be populated here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Submit Complaint Page -->
-            <div id="submit-page" class="page hidden">
-                <div class="container">
-                    <div class="page-header">
-                        <h1>Submit New Complaint</h1>
-                        <p>Describe your issue and we'll help resolve it</p>
-                    </div>
-
-                    <div class="form-card">
-                        <form id="complaint-form">
-                            <div class="form-group">
-                                <label for="complaint-title">Title *</label>
-                                <input type="text" id="complaint-title" class="form-control" placeholder="Brief description of the issue" required>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="complaint-category">Category *</label>
-                                    <select id="complaint-category" class="form-control" required>
-                                        <option value="">Select Category</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="complaint-priority">Priority *</label>
-                                    <select id="complaint-priority" class="form-control" required>
-                                        <option value="">Select Priority</option>
-                                    </select>
+                        
+                        <!-- Statistics Cards -->
+                        <div class="stats-grid" role="region" aria-label="Statistics overview">
+                            <div class="stat-card">
+                                <div class="stat-icon" aria-hidden="true">📝</div>
+                                <div class="stat-content">
+                                    <h3 id="total-complaints" aria-label="Total complaints count">0</h3>
+                                    <p id="total-complaints-label">Total Complaints</p>
                                 </div>
                             </div>
-
-                            <div class="form-group">
-                                <label for="complaint-description">Description *</label>
-                                <textarea id="complaint-description" class="form-control" rows="5" placeholder="Provide detailed description of the issue..." required></textarea>
+                            <div class="stat-card">
+                                <div class="stat-icon" aria-hidden="true">⏳</div>
+                                <div class="stat-content">
+                                    <h3 id="pending-complaints" aria-label="Pending complaints count">0</h3>
+                                    <p id="pending-complaints-label">Pending</p>
+                                </div>
                             </div>
-
-                            <div class="form-group">
-                                <label for="complaint-file">Attachment (Optional)</label>
-                                <input type="file" id="complaint-file" class="form-control" accept="image/*,application/pdf">
-                                <small>Upload images or documents related to your complaint</small>
+                            <div class="stat-card">
+                                <div class="stat-icon" aria-hidden="true">🔄</div>
+                                <div class="stat-content">
+                                    <h3 id="progress-complaints" aria-label="In progress complaints count">0</h3>
+                                    <p id="progress-complaints-label">In Progress</p>
+                                </div>
                             </div>
-
-                            <div class="form-actions">
-                                <button type="button" class="btn btn--outline" data-route="dashboard">Cancel</button>
-                                <button type="submit" class="btn btn--primary">Submit Complaint</button>
+                            <div class="stat-card">
+                                <div class="stat-icon" aria-hidden="true">✅</div>
+                                <div class="stat-content">
+                                    <h3 id="resolved-complaints" aria-label="Resolved complaints count">0</h3>
+                                    <p id="resolved-complaints-label">Resolved</p>
+                                </div>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+                        </div>
 
-            <!-- Profile Page -->
-            <div id="profile-page" class="page hidden">
-                <div class="container">
-                    <div class="page-header">
-                        <h1>Profile</h1>
-                        <p>Manage your account information</p>
-                    </div>
-
-                    <div class="profile-card">
-                        <div class="profile-info">
-                            <div class="profile-avatar">
-                                <span id="avatar-initials">JD</span>
+                        <!-- Admin Dashboard Charts -->
+                        <div class="admin-only charts-section" role="region" aria-label="Analytics charts">
+                            <div class="section-header">
+                                <h2 id="quick-insights-title">Quick Insights</h2>
                             </div>
-                            <div class="profile-details">
-                                <h3 id="profile-name">John Doe</h3>
-                                <p id="profile-email">john@college.edu</p>
-                                <span class="user-role" id="profile-role">Student</span>
+                            <div class="charts-grid">
+                                <div class="chart-card">
+                                    <h3 id="monthly-trends-title">Monthly Trends</h3>
+                                    <div class="chart-container" style="position: relative; height: 300px;">
+                                        <canvas id="monthly-trends-chart" aria-label="Monthly complaint trends chart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="chart-card">
+                                    <h3 id="satisfaction-overview-title">Satisfaction Overview</h3>
+                                    <div class="chart-container" style="position: relative; height: 300px;">
+                                        <canvas id="satisfaction-chart" aria-label="Satisfaction ratings chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Complaints -->
+                        <div class="section-card">
+                            <div class="section-header">
+                                <h2 id="recent-complaints-title">Recent Complaints</h2>
+                                <button class="btn btn--sm btn--primary" data-route="complaints" id="view-all-btn">View All</button>
+                            </div>
+                            <div id="recent-complaints" class="complaints-list" role="list" aria-label="Recent complaints">
+                                <!-- Recent complaints will be populated here -->
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- Analytics Page (Admin Only) -->
+                <div id="analytics-page" class="page hidden admin-only">
+                    <div class="container">
+                        <div class="page-header">
+                            <div>
+                                <h1 id="analytics-title">Analytics & Reports</h1>
+                                <p id="analytics-subtitle">Comprehensive insights and performance metrics</p>
+                            </div>
+                            <div class="page-actions">
+                                <button class="btn btn--outline" id="export-analytics-btn">
+                                    <span aria-hidden="true">📊</span>
+                                    <span id="export-text">Export Report</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Analytics Statistics -->
+                        <div class="analytics-stats-grid">
+                            <div class="analytics-stat-card">
+                                <h3 id="overall-rating-label">Overall Rating</h3>
+                                <div class="rating-display">
+                                    <span class="rating-number" id="overall-rating">4.3</span>
+                                    <div class="star-display" id="overall-stars" aria-label="4.3 out of 5 stars"></div>
+                                </div>
+                                <p class="stat-detail" id="total-feedback-count">Based on 245 feedbacks</p>
+                            </div>
+                            <div class="analytics-stat-card">
+                                <h3 id="resolution-rate-label">Resolution Rate</h3>
+                                <div class="percentage-display">
+                                    <span class="percentage-number" id="resolution-rate">84%</span>
+                                </div>
+                                <p class="stat-detail" id="resolution-trend">↗️ +5% this month</p>
+                            </div>
+                            <div class="analytics-stat-card">
+                                <h3 id="avg-resolution-time-label">Avg Resolution Time</h3>
+                                <div class="time-display">
+                                    <span class="time-number" id="avg-resolution-time">2.3</span>
+                                    <span class="time-unit" id="time-unit">days</span>
+                                </div>
+                                <p class="stat-detail" id="time-trend">↘️ -0.5 days improved</p>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Charts -->
+                        <div class="analytics-charts">
+                            <div class="chart-row">
+                                <div class="chart-card full-width">
+                                    <div class="chart-header">
+                                        <h3 id="detailed-trends-title">Detailed Monthly Trends</h3>
+                                        <div class="chart-controls">
+                                            <select id="trend-period" class="form-control form-control--sm">
+                                                <option value="6months">Last 6 Months</option>
+                                                <option value="1year">Last Year</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="chart-container" style="position: relative; height: 400px;">
+                                        <canvas id="detailed-trends-chart" aria-label="Detailed monthly trends chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-row">
+                                <div class="chart-card">
+                                    <h3 id="category-breakdown-title">Category Breakdown</h3>
+                                    <div class="chart-container" style="position: relative; height: 300px;">
+                                        <canvas id="category-chart" aria-label="Complaints by category chart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="chart-card">
+                                    <h3 id="satisfaction-breakdown-title">Satisfaction Breakdown</h3>
+                                    <div class="chart-container" style="position: relative; height: 300px;">
+                                        <canvas id="satisfaction-breakdown-chart" aria-label="Satisfaction ratings breakdown chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Performance Table -->
+                        <div class="section-card">
+                            <div class="section-header">
+                                <h2 id="department-performance-title">Department Performance</h2>
+                            </div>
+                            <div class="performance-table-container">
+                                <table class="performance-table" role="table" aria-label="Department performance data">
+                                    <thead>
+                                        <tr role="row">
+                                            <th id="dept-name-header" scope="col">Department</th>
+                                            <th id="dept-complaints-header" scope="col">Complaints</th>
+                                            <th id="dept-resolved-header" scope="col">Resolved</th>
+                                            <th id="dept-avg-time-header" scope="col">Avg Time</th>
+                                            <th id="dept-rating-header" scope="col">Rating</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="performance-table-body">
+                                        <!-- Table data will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Complaints Page -->
+                <div id="complaints-page" class="page hidden">
+                    <div class="container">
+                        <div class="page-header">
+                            <div>
+                                <h1 id="complaints-title">Complaint Management</h1>
+                            </div>
+                            <div class="page-actions">
+                                <button class="btn btn--primary student-only" data-route="submit" id="new-complaint-btn">
+                                    <span aria-hidden="true">➕</span>
+                                    <span id="new-complaint-text">New Complaint</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Filters -->
+                        <div class="filters-card" role="region" aria-label="Filter complaints">
+                            <div class="filters-grid">
+                                <div class="filter-group">
+                                    <label for="category-filter" id="category-filter-label">Category</label>
+                                    <select id="category-filter" class="form-control" aria-describedby="category-filter-desc">
+                                        <option value="" id="all-categories-option">All Categories</option>
+                                    </select>
+                                    <p id="category-filter-desc" class="sr-only">Filter complaints by category</p>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="priority-filter" id="priority-filter-label">Priority</label>
+                                    <select id="priority-filter" class="form-control" aria-describedby="priority-filter-desc">
+                                        <option value="" id="all-priorities-option">All Priorities</option>
+                                    </select>
+                                    <p id="priority-filter-desc" class="sr-only">Filter complaints by priority</p>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="status-filter" id="status-filter-label">Status</label>
+                                    <select id="status-filter" class="form-control" aria-describedby="status-filter-desc">
+                                        <option value="" id="all-status-option">All Status</option>
+                                    </select>
+                                    <p id="status-filter-desc" class="sr-only">Filter complaints by status</p>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="search-filter" id="search-filter-label">Search</label>
+                                    <input type="text" id="search-filter" class="form-control" placeholder="Search complaints..." aria-describedby="search-filter-desc">
+                                    <p id="search-filter-desc" class="sr-only">Search complaints by title, description, or ID</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Complaints List -->
+                        <div id="complaints-list" class="complaints-grid" role="list" aria-label="List of complaints">
+                            <!-- Complaints will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Complaint Page -->
+                <div id="submit-page" class="page hidden">
+                    <div class="container">
+                        <div class="page-header">
+                            <h1 id="submit-title">Submit New Complaint</h1>
+                            <p id="submit-subtitle">Describe your issue and we'll help resolve it</p>
+                        </div>
+
+                        <div class="form-card">
+                            <form id="complaint-form" novalidate>
+                                <div class="form-group">
+                                    <label for="complaint-title" id="complaint-title-label">Title *</label>
+                                    <input type="text" id="complaint-title" class="form-control" placeholder="Brief description of the issue" required aria-describedby="title-error">
+                                    <span id="title-error" class="form-error" role="alert"></span>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="complaint-category" id="complaint-category-label">Category *</label>
+                                        <select id="complaint-category" class="form-control" required aria-describedby="category-error">
+                                            <option value="" id="select-category-option">Select Category</option>
+                                        </select>
+                                        <span id="category-error" class="form-error" role="alert"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="complaint-priority" id="complaint-priority-label">Priority *</label>
+                                        <select id="complaint-priority" class="form-control" required aria-describedby="priority-error">
+                                            <option value="" id="select-priority-option">Select Priority</option>
+                                        </select>
+                                        <span id="priority-error" class="form-error" role="alert"></span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="complaint-description" id="complaint-description-label">Description *</label>
+                                    <textarea id="complaint-description" class="form-control" rows="5" placeholder="Provide detailed description of the issue..." required aria-describedby="description-error"></textarea>
+                                    <span id="description-error" class="form-error" role="alert"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="complaint-file" id="complaint-file-label">Attachment (Optional)</label>
+                                    <input type="file" id="complaint-file" class="form-control" accept="image/*,application/pdf" aria-describedby="file-desc">
+                                    <small id="file-desc">Upload images or documents related to your complaint</small>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn--outline" data-route="dashboard" id="cancel-btn">Cancel</button>
+                                    <button type="submit" class="btn btn--primary" id="submit-complaint-btn">Submit Complaint</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Page -->
+                <div id="profile-page" class="page hidden">
+                    <div class="container">
+                        <div class="page-header">
+                            <h1 id="profile-title">Profile</h1>
+                            <p id="profile-subtitle">Manage your account information</p>
+                        </div>
+
+                        <div class="profile-card">
+                            <div class="profile-info">
+                                <div class="profile-avatar" aria-label="User avatar">
+                                    <span id="avatar-initials">JD</span>
+                                </div>
+                                <div class="profile-details">
+                                    <h3 id="profile-name">John Doe</h3>
+                                    <p id="profile-email">john@college.edu</p>
+                                    <span class="user-role" id="profile-role">Student</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
 
         <!-- Complaint Detail Modal -->
-        <div id="complaint-modal" class="modal hidden">
+        <div id="complaint-modal" class="modal hidden" role="dialog" aria-labelledby="modal-title" aria-modal="true">
             <div class="modal-overlay" data-close-modal></div>
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 id="modal-title">Complaint Details</h3>
-                    <button class="modal-close" data-close-modal>×</button>
+                    <button class="modal-close" data-close-modal aria-label="Close modal">×</button>
                 </div>
                 <div class="modal-body">
                     <div class="complaint-detail">
@@ -397,47 +486,60 @@
                         </div>
                         
                         <!-- Progress Tracker -->
-                        <div class="progress-tracker">
+                        <div class="progress-tracker" role="progressbar" aria-labelledby="progress-label">
+                            <span id="progress-label" class="sr-only">Complaint progress</span>
                             <div class="progress-step active" data-step="1">
-                                <div class="step-icon">📝</div>
-                                <span>Submitted</span>
+                                <div class="step-icon" aria-hidden="true">📝</div>
+                                <span id="step-submitted">Submitted</span>
                             </div>
                             <div class="progress-step" data-step="2">
-                                <div class="step-icon">🔄</div>
-                                <span>In Progress</span>
+                                <div class="step-icon" aria-hidden="true">🔄</div>
+                                <span id="step-progress">In Progress</span>
                             </div>
                             <div class="progress-step" data-step="3">
-                                <div class="step-icon">✅</div>
-                                <span>Resolved</span>
+                                <div class="step-icon" aria-hidden="true">✅</div>
+                                <span id="step-resolved">Resolved</span>
                             </div>
                         </div>
 
                         <div class="complaint-info">
                             <div class="info-group">
-                                <label>Category</label>
+                                <label id="modal-category-label">Category</label>
                                 <div id="modal-category" class="category-badge"></div>
                             </div>
                             <div class="info-group">
-                                <label>Priority</label>
+                                <label id="modal-priority-label">Priority</label>
                                 <div id="modal-priority" class="priority-badge"></div>
                             </div>
                             <div class="info-group">
-                                <label>Status</label>
+                                <label id="modal-status-label">Status</label>
                                 <div id="modal-status" class="status-badge"></div>
                             </div>
                         </div>
 
                         <div class="info-group">
-                            <label>Description</label>
+                            <label id="modal-description-label">Description</label>
                             <p id="modal-description"></p>
                         </div>
 
+                        <!-- Feedback Display -->
+                        <div id="feedback-display" class="feedback-section hidden">
+                            <label id="feedback-label">Feedback</label>
+                            <div class="feedback-content">
+                                <div class="rating-display">
+                                    <div id="feedback-stars" class="star-display"></div>
+                                    <span id="feedback-rating-text"></span>
+                                </div>
+                                <p id="feedback-comment"></p>
+                            </div>
+                        </div>
+
                         <div class="staff-actions staff-only admin-only hidden">
-                            <label>Update Status</label>
+                            <label id="update-status-label">Update Status</label>
                             <div class="status-actions">
-                                <button class="btn btn--sm status-btn" data-status="1">Mark as Submitted</button>
-                                <button class="btn btn--sm status-btn" data-status="2">Mark In Progress</button>
-                                <button class="btn btn--sm status-btn" data-status="3">Mark Resolved</button>
+                                <button class="btn btn--sm status-btn" data-status="1" id="mark-submitted">Mark as Submitted</button>
+                                <button class="btn btn--sm status-btn" data-status="2" id="mark-progress">Mark In Progress</button>
+                                <button class="btn btn--sm status-btn" data-status="3" id="mark-resolved">Mark Resolved</button>
                             </div>
                         </div>
                     </div>
@@ -445,8 +547,87 @@
             </div>
         </div>
 
+        <!-- Feedback Modal -->
+        <div id="feedback-modal" class="modal hidden" role="dialog" aria-labelledby="feedback-modal-title" aria-modal="true">
+            <div class="modal-overlay"></div>
+            <div class="modal-content feedback-modal-content">
+                <div class="modal-header">
+                    <h3 id="feedback-modal-title">Rate Your Experience</h3>
+                    <button class="modal-close" id="feedback-modal-close" aria-label="Close feedback modal">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="feedback-form">
+                        <p id="feedback-intro">How satisfied are you with the resolution of your complaint?</p>
+                        
+                        <div class="rating-input" role="radiogroup" aria-labelledby="rating-label">
+                            <label id="rating-label" class="rating-label">Rating *</label>
+                            <div class="star-rating">
+                                <button type="button" class="star" data-rating="1" aria-label="1 star">★</button>
+                                <button type="button" class="star" data-rating="2" aria-label="2 stars">★</button>
+                                <button type="button" class="star" data-rating="3" aria-label="3 stars">★</button>
+                                <button type="button" class="star" data-rating="4" aria-label="4 stars">★</button>
+                                <button type="button" class="star" data-rating="5" aria-label="5 stars">★</button>
+                            </div>
+                            <span id="rating-display" class="rating-text" aria-live="polite"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="feedback-comment-input" id="feedback-comment-label">Additional Comments (Optional)</label>
+                            <textarea id="feedback-comment-input" class="form-control" rows="4" placeholder="Share your thoughts about the resolution..." aria-describedby="comment-desc"></textarea>
+                            <small id="comment-desc">Your feedback helps us improve our service</small>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn--outline" id="skip-feedback-btn">Skip</button>
+                            <button type="button" class="btn btn--primary" id="submit-feedback-btn" disabled>Submit Feedback</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Modal -->
+        <div id="notifications-modal" class="modal hidden" role="dialog" aria-labelledby="notifications-modal-title" aria-modal="true">
+            <div class="modal-overlay" data-close-modal></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="notifications-modal-title">Notifications</h3>
+                    <button class="modal-close" data-close-modal aria-label="Close notifications">×</button>
+                </div>
+                <div class="modal-body">
+                    <div id="notifications-list" role="list" aria-label="List of notifications">
+                        <!-- Notifications will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Toast Notifications -->
-        <div id="toast-container" class="toast-container"></div>
+        <div id="toast-container" class="toast-container" role="status" aria-live="polite" aria-label="Notifications"></div>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+            <a href="#" class="mobile-nav-item" data-route="dashboard" id="mobile-dashboard">
+                <span class="mobile-nav-icon" aria-hidden="true">📊</span>
+                <span class="mobile-nav-label" id="mobile-dashboard-text">Dashboard</span>
+            </a>
+            <a href="#" class="mobile-nav-item" data-route="complaints" id="mobile-complaints">
+                <span class="mobile-nav-icon" aria-hidden="true">📝</span>
+                <span class="mobile-nav-label" id="mobile-complaints-text">Complaints</span>
+            </a>
+            <a href="#" class="mobile-nav-item student-only" data-route="submit" id="mobile-submit">
+                <span class="mobile-nav-icon" aria-hidden="true">➕</span>
+                <span class="mobile-nav-label" id="mobile-submit-text">Submit</span>
+            </a>
+            <a href="#" class="mobile-nav-item admin-only" data-route="analytics" id="mobile-analytics">
+                <span class="mobile-nav-icon" aria-hidden="true">📈</span>
+                <span class="mobile-nav-label" id="mobile-analytics-text">Analytics</span>
+            </a>
+            <a href="#" class="mobile-nav-item" data-route="profile" id="mobile-profile">
+                <span class="mobile-nav-icon" aria-hidden="true">👤</span>
+                <span class="mobile-nav-label" id="mobile-profile-text">Profile</span>
+            </a>
+        </nav>
     </div>
 
     <script src="app.js"></script>
