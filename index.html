@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Complaint Management System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Loading Screen -->
+        <div id="loading" class="loading-screen">
+            <div class="loading-spinner"></div>
+            <p>Loading...</p>
+        </div>
+
+        <!-- Login Page -->
+        <div id="login-page" class="page hidden">
+            <div class="login-container">
+                <div class="login-card">
+                    <div class="login-header">
+                        <h1>College Portal</h1>
+                        <p>Complaint Management System</p>
+                    </div>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="role">Role</label>
+                            <select id="role" class="form-control" required>
+                                <option value="">Select Role</option>
+                                <option value="Student">Student</option>
+                                <option value="Staff">Staff</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn--primary btn--full-width">Login</button>
+                    </form>
+                    <div class="demo-credentials">
+                        <p><strong>Demo Credentials:</strong></p>
+                        <p>Student: student@college.edu / demo123</p>
+                        <p>Staff: staff@college.edu / demo123</p>
+                        <p>Admin: admin@college.edu / demo123</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App -->
+        <div id="main-app" class="hidden">
+            <!-- Navigation -->
+            <nav class="navbar">
+                <div class="nav-brand">
+                    <span class="nav-logo">🎓</span>
+                    <span class="nav-title">College Portal</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link" data-route="dashboard">Dashboard</a>
+                    <a href="#" class="nav-link" data-route="complaints">Complaints</a>
+                    <a href="#" class="nav-link student-only" data-route="submit">Submit</a>
+                    <a href="#" class="nav-link" data-route="profile">Profile</a>
+                </div>
+                <div class="nav-user">
+                    <span id="user-name">User</span>
+                    <span class="user-role" id="user-role">Student</span>
+                    <button class="btn btn--sm btn--outline" id="logout-btn">Logout</button>
+                </div>
+            </nav>
+
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page">
+                <div class="container">
+                    <div class="page-header">
+                        <h1>Dashboard</h1>
+                        <p>Welcome to your complaint management dashboard</p>
+                    </div>
+                    
+                    <!-- Statistics Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📝</div>
+                            <div class="stat-content">
+                                <h3 id="total-complaints">0</h3>
+                                <p>Total Complaints</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⏳</div>
+                            <div class="stat-content">
+                                <h3 id="pending-complaints">0</h3>
+                                <p>Pending</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🔄</div>
+                            <div class="stat-content">
+                                <h3 id="progress-complaints">0</h3>
+                                <p>In Progress</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-content">
+                                <h3 id="resolved-complaints">0</h3>
+                                <p>Resolved</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Complaints -->
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h2>Recent Complaints</h2>
+                            <button class="btn btn--sm btn--primary" data-route="complaints">View All</button>
+                        </div>
+                        <div id="recent-complaints" class="complaints-list">
+                            <!-- Recent complaints will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complaints Page -->
+            <div id="complaints-page" class="page hidden">
+                <div class="container">
+                    <div class="page-header">
+                        <h1>Complaint Management</h1>
+                        <div class="page-actions">
+                            <button class="btn btn--primary student-only" data-route="submit">New Complaint</button>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="filters-card">
+                        <div class="filters-grid">
+                            <div class="filter-group">
+                                <label>Category</label>
+                                <select id="category-filter" class="form-control">
+                                    <option value="">All Categories</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Priority</label>
+                                <select id="priority-filter" class="form-control">
+                                    <option value="">All Priorities</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Status</label>
+                                <select id="status-filter" class="form-control">
+                                    <option value="">All Status</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Search</label>
+                                <input type="text" id="search-filter" class="form-control" placeholder="Search complaints...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Complaints List -->
+                    <div id="complaints-list" class="complaints-grid">
+                        <!-- Complaints will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Complaint Page -->
+            <div id="submit-page" class="page hidden">
+                <div class="container">
+                    <div class="page-header">
+                        <h1>Submit New Complaint</h1>
+                        <p>Describe your issue and we'll help resolve it</p>
+                    </div>
+
+                    <div class="form-card">
+                        <form id="complaint-form">
+                            <div class="form-group">
+                                <label for="complaint-title">Title *</label>
+                                <input type="text" id="complaint-title" class="form-control" placeholder="Brief description of the issue" required>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="complaint-category">Category *</label>
+                                    <select id="complaint-category" class="form-control" required>
+                                        <option value="">Select Category</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="complaint-priority">Priority *</label>
+                                    <select id="complaint-priority" class="form-control" required>
+                                        <option value="">Select Priority</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="complaint-description">Description *</label>
+                                <textarea id="complaint-description" class="form-control" rows="5" placeholder="Provide detailed description of the issue..." required></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="complaint-file">Attachment (Optional)</label>
+                                <input type="file" id="complaint-file" class="form-control" accept="image/*,application/pdf">
+                                <small>Upload images or documents related to your complaint</small>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn btn--outline" data-route="dashboard">Cancel</button>
+                                <button type="submit" class="btn btn--primary">Submit Complaint</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Page -->
+            <div id="profile-page" class="page hidden">
+                <div class="container">
+                    <div class="page-header">
+                        <h1>Profile</h1>
+                        <p>Manage your account information</p>
+                    </div>
+
+                    <div class="profile-card">
+                        <div class="profile-info">
+                            <div class="profile-avatar">
+                                <span id="avatar-initials">JD</span>
+                            </div>
+                            <div class="profile-details">
+                                <h3 id="profile-name">John Doe</h3>
+                                <p id="profile-email">john@college.edu</p>
+                                <span class="user-role" id="profile-role">Student</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Complaint Detail Modal -->
+        <div id="complaint-modal" class="modal hidden">
+            <div class="modal-overlay" data-close-modal></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-title">Complaint Details</h3>
+                    <button class="modal-close" data-close-modal>×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="complaint-detail">
+                        <div class="complaint-meta">
+                            <span id="modal-id" class="complaint-id"></span>
+                            <span id="modal-date" class="complaint-date"></span>
+                        </div>
+                        
+                        <!-- Progress Tracker -->
+                        <div class="progress-tracker">
+                            <div class="progress-step active" data-step="1">
+                                <div class="step-icon">📝</div>
+                                <span>Submitted</span>
+                            </div>
+                            <div class="progress-step" data-step="2">
+                                <div class="step-icon">🔄</div>
+                                <span>In Progress</span>
+                            </div>
+                            <div class="progress-step" data-step="3">
+                                <div class="step-icon">✅</div>
+                                <span>Resolved</span>
+                            </div>
+                        </div>
+
+                        <div class="complaint-info">
+                            <div class="info-group">
+                                <label>Category</label>
+                                <div id="modal-category" class="category-badge"></div>
+                            </div>
+                            <div class="info-group">
+                                <label>Priority</label>
+                                <div id="modal-priority" class="priority-badge"></div>
+                            </div>
+                            <div class="info-group">
+                                <label>Status</label>
+                                <div id="modal-status" class="status-badge"></div>
+                            </div>
+                        </div>
+
+                        <div class="info-group">
+                            <label>Description</label>
+                            <p id="modal-description"></p>
+                        </div>
+
+                        <div class="staff-actions staff-only admin-only hidden">
+                            <label>Update Status</label>
+                            <div class="status-actions">
+                                <button class="btn btn--sm status-btn" data-status="1">Mark as Submitted</button>
+                                <button class="btn btn--sm status-btn" data-status="2">Mark In Progress</button>
+                                <button class="btn btn--sm status-btn" data-status="3">Mark Resolved</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
